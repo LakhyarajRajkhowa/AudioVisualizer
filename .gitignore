@@ -1,0 +1,31 @@
+# Build folders
+/build/
+/build-*/
+out/
+bin/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Visual Studio / VSCode
+.vs/
+.vscode/
+
+# Windows
+*.exe
+*.dll
+*.obj
+*.pdb
+*.ilk
+*.lib
+*.exp
+
+# Mac
+.DS_Store
+
+# Logs
+*.log
