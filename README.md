@@ -26,9 +26,9 @@ pacman -S mingw-w64-x86_64-ninja
 
 # Build Instructions
 
-## Option 1 — Using Ninja (recommended)
-
 ```
+git clone https://github.com/LakhyarajRajkhowa/AudioVisualizer.git
+
 mkdir build
 cd build
 
@@ -38,21 +38,6 @@ cmake --build .
 
 ---
 
-## Option 2 — Without Ninja (default CMake generator)
-
-If you don't have Ninja installed, simply run:
-
-```
-mkdir build
-cd build
-
-cmake ..
-cmake --build .
-```
-
-CMake will automatically choose the default generator available on your system.
-
----
 
 # Run
 
