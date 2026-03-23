@@ -28,6 +28,7 @@ pacman -S mingw-w64-x86_64-ninja
 
 ```
 git clone https://github.com/LakhyarajRajkhowa/AudioVisualizer.git
+cd AudioVisaulizer
 
 mkdir build
 cd build
