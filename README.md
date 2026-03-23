@@ -8,4 +8,4 @@ Linux:
 sudo apt install libsdl2-dev libglew-dev
 
 Mac:
-brew install sdl2 glew
+brew install sdl2 glew# AudioVisualizer
