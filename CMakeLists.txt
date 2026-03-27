@@ -51,7 +51,10 @@ set(SRC_FILES
     main.cpp
     src/audio/AudioCapture.cpp
     src/audio/FFTProcessor.cpp
+    src/audio/AudioAnalyzer.cpp
+    src/visualizer/opengl/GLSLProgram.cpp
     src/UI/Window.cpp
+    src/UI/ImguiLayer.cpp
 
 )
 
@@ -70,10 +73,8 @@ add_executable(AudioVisualizer
 
 target_include_directories(AudioVisualizer PRIVATE
     include
-    external/miniaudio
-    external/kissfft
-    external/SDL
-    external/GL
+    external
+
 )
 
 # -------------------------------------------------

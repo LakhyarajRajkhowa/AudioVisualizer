@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
-#include "../external/SDL/SDL.h"
-#include "../external/GL/glew.h"
+#include <SDL/SDL.h>
+#include <GL/glew.h>
 #include <string>
 
 #include "../external/imgui/backends/imgui_impl_sdl2.h"

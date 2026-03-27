@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <cstddef>
-#include <kiss_fftr.h>
+#include <kissfft/kiss_fftr.h>
 
 class FFTProcessor
 {

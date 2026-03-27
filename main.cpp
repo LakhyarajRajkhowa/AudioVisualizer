@@ -1,29 +1,48 @@
+/*
+    Lengine is the namespace of my game engine.
+    Some files of Lengine are used in this project
+
+*/
+
+
 #define SDL_MAIN_HANDLED
 
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <iostream>
 
-#include "include/audio/AudioCapture.h"
-#include "include/audio/FFTProcessor.h"
-#include "include/UI/Window.h"
+#include "audio/AudioCapture.h"
+#include "audio/FFTProcessor.h"
+#include "audio/AudioAnalyzer.h"
+#include "UI/Window.h"
+#include "UI/ImguiLayer.h"
 
-using namespace std;
+#define LIMIT_DELAY 16 // LIMIT_FPS = 1000 / LIMIT_DELAY
+
+#define FFT_SIZE 1024
+
 
 int main(int argc, char* argv[])
 {
-    // -------- Audio --------
+    bool running = true;
+
     AudioCapture audio;
     audio.LoadFile("../assets/audio/shape_of_you.mp3");
     audio.Play();
 
-    // -------- Window --------
-    Lengine::Window window("Audio Visualizer Test", 1280, 720, 0);
+    Lengine::Window window("Audio Visualizer Test", 1280, 720, 0); 
 
-    // -------- FFT --------
-    FFTProcessor fft(1024);
+    Lengine::ImGuiLayer imguiLayer(
+        running,
+        window.getWindow(),
+        window.getGlContext()
+    );
 
-    bool running = true;
+
+    FFTProcessor fft(FFT_SIZE);
+    AudioAnalyzer analyzer(FFT_SIZE);
+
+
     SDL_Event event;
 
     while (running)
@@ -37,12 +56,30 @@ int main(int argc, char* argv[])
             }
         }
 
-      
-        // -------- Rendering --------
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        imguiLayer.beginFrame();
+
+
+        auto sample_window = audio.GetSamplesWindow(FFT_SIZE);
+
+        fft.Process(sample_window);
+
+        const auto& spectrum = fft.GetSpectrum();
+
+        analyzer.Analyze(spectrum);
+
+        float bass = analyzer.GetBass();
+        float mid = analyzer.GetMid();
+        float treble = analyzer.GetTreble();
+
+        const auto& smoothed = analyzer.GetSmoothedSpectrum();
+
+        // (Red, Green, Blue, Alpha)
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Swap buffers
+        SDL_Delay(LIMIT_DELAY); 
+
+        imguiLayer.endFrame();
         window.swapBuffer();
     }
 
