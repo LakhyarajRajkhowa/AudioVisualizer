@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL2/SDL.h>
+#include <SDL/SDL.h>
 #define IMGUI_ENABLE_DOCKING
 
 #include <imgui/imgui.h>

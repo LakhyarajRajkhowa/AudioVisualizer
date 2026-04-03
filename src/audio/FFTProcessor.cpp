@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cstdlib>
 
+#define M_PI 3.14159265358979323846
+
 FFTProcessor::FFTProcessor(size_t size)
 {
     fftSize = size;

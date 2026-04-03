@@ -16,8 +16,6 @@ compile_commands.json
 .vscode/
 
 # Windows
-*.exe
-*.dll
 *.obj
 *.pdb
 *.ilk

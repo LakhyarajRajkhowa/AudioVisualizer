@@ -7,7 +7,7 @@
 
 #define SDL_MAIN_HANDLED
 
-#include <SDL2/SDL.h>
+#include <SDL/SDL.h>
 #include <GL/glew.h>
 #include <iostream>
 
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
         const auto& smoothed = analyzer.GetSmoothedSpectrum();
 
         // (Red, Green, Blue, Alpha)
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
+        glClearColor(0.0f, 1.0f, 0.0f, 1.0f); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         SDL_Delay(LIMIT_DELAY); 
