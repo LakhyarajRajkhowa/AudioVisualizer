@@ -3,40 +3,44 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <unordered_map>
 
 #include <miniaudio/miniaudio.h>
 
-class AudioCapture
+
+struct AudioClip
 {
-public:
-
-    AudioCapture();
-    ~AudioCapture();
-
-    bool LoadFile(const std::string& filepath);
-
-    void Play();
-    void Stop();
-
-    const std::vector<float>& GetSamples() const;
-
-    uint32_t GetSampleRate() const;
-    uint64_t GetFrameCount() const;
-
-    uint64_t GetPlaybackFrame() const;
-    // Returns current playback position in PCM frames
-
-    std::vector<float> GetSamplesWindow(size_t fftSize) const;
-    // Returns a mono FFT window starting at the current playback position
-
-private:
-
-    ma_engine engine;
     ma_decoder decoder;
     ma_sound sound;
 
     std::vector<float> samples;
 
-    uint32_t sampleRate;
-    uint64_t frameCount;
+    uint32_t sampleRate = 0;
+    uint64_t frameCount = 0;
+    uint32_t channels;
+};
+
+class AudioCapture
+{
+public:
+    AudioCapture();
+    ~AudioCapture();
+
+    bool LoadAudio(int id, const std::string& filepath);
+
+    void Play(int id);
+    void Stop(int id);
+
+    std::vector<float> GetSamplesWindow(int id, size_t fftSize);
+
+    uint64_t GetPlaybackFrame(int id);
+
+private:
+
+    ma_engine engine;
+
+    std::unordered_map<int, std::unique_ptr<AudioClip>> clips;
+
+
+
 };

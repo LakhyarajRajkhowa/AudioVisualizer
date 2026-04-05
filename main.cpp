@@ -14,8 +14,15 @@
 #include "audio/AudioCapture.h"
 #include "audio/FFTProcessor.h"
 #include "audio/AudioAnalyzer.h"
+#include "audio/AudioManager.h"
+
 #include "UI/Window.h"
 #include "UI/ImguiLayer.h"
+
+#include "visualizer/RenderPipeline.h"
+
+#include "external/tinyfiledialogs/tinyfiledialogs.h"
+
 
 #define LIMIT_DELAY 16 // LIMIT_FPS = 1000 / LIMIT_DELAY
 
@@ -26,9 +33,16 @@ int main(int argc, char* argv[])
 {
     bool running = true;
 
+    AudioManager audioManager("C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/database/audiodb.json");
+
     AudioCapture audio;
-    audio.LoadFile("../assets/audio/shape_of_you.mp3");
-    audio.Play();
+
+    std::string path = "../assets/audio/shape_of_you.mp3";
+
+    int id = audioManager.ImportAudio(path);
+    audio.LoadAudio(id, path);
+    audio.Play(1);
+
 
     Lengine::Window window("Audio Visualizer Test", 1280, 720, 0); 
 
@@ -37,6 +51,8 @@ int main(int argc, char* argv[])
         window.getWindow(),
         window.getGlContext()
     );
+
+    Lengine::RenderPipeline renderPipeline;
 
 
     FFTProcessor fft(FFT_SIZE);
@@ -50,6 +66,8 @@ int main(int argc, char* argv[])
         // -------- Event Handling --------
         while (SDL_PollEvent(&event))
         {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+
             if (event.type == SDL_QUIT)
             {
                 running = false;
@@ -59,7 +77,7 @@ int main(int argc, char* argv[])
         imguiLayer.beginFrame();
 
 
-        auto sample_window = audio.GetSamplesWindow(FFT_SIZE);
+        auto sample_window = audio.GetSamplesWindow(1, FFT_SIZE);
 
         fft.Process(sample_window);
 
@@ -73,12 +91,11 @@ int main(int argc, char* argv[])
 
         const auto& smoothed = analyzer.GetSmoothedSpectrum();
 
-        // (Red, Green, Blue, Alpha)
-        glClearColor(0.0f, 1.0f, 0.0f, 1.0f); 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderPipeline.Render(bass, mid, treble, smoothed, Lengine::VisualMode::MODE_1);
 
         SDL_Delay(LIMIT_DELAY); 
 
+        imguiLayer.renderPanels(renderPipeline.GetFinalImage());
         imguiLayer.endFrame();
         window.swapBuffer();
     }

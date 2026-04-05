@@ -5,8 +5,6 @@ project(AudioVisualizer)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
-
 # -------------------------------------------------
 # ImGui Library
 # -------------------------------------------------
@@ -21,15 +19,19 @@ set(IMGUI_SRC
     external/imgui/backends/imgui_impl_opengl3.cpp
 )
 
+set(TINYFILE_SRC
+    external/tinyfiledialogs/tinyfiledialogs.c
+)
+
 add_library(imgui STATIC ${IMGUI_SRC})
 
 target_include_directories(imgui PUBLIC
     external/imgui
     external/SDL
     external/GL
+    external/nlohmann
+    external/tinyfiledialogs
 )
-
-source_group("external\\imgui" FILES ${IMGUI_SRC})
 
 # -------------------------------------------------
 # KISSFFT
@@ -40,8 +42,6 @@ set(KISSFFT_SRC
     external/kissfft/kiss_fftr.c
 )
 
-source_group("external\\kissfft" FILES ${KISSFFT_SRC})
-
 # -------------------------------------------------
 # Source Files
 # -------------------------------------------------
@@ -50,21 +50,32 @@ set(AUDIO_SRC
     src/audio/AudioCapture.cpp
     src/audio/FFTProcessor.cpp
     src/audio/AudioAnalyzer.cpp
+    src/audio/AudioManager.cpp
     include/audio/AudioCapture.h
     include/audio/FFTProcessor.h
     include/audio/AudioAnalyzer.h
+    include/audio/AudioManager.h
 )
 
 set(UI_SRC
     src/UI/Window.cpp
     src/UI/ImguiLayer.cpp
+    src/UI/panels/ViewportPanel.cpp
     include/UI/Window.h
     include/UI/ImguiLayer.h
+    include/UI/panels/ViewportPanel.h
+
 )
 
 set(VISUALIZER_SRC
     src/visualizer/opengl/GLSLProgram.cpp
     include/visualizer/opengl/GLSLProgram.h
+
+    src/visualizer/framebuffers/Framebuffer.cpp
+    include/visualizer/framebuffers/Framebuffer.h
+
+    src/visualizer/RenderPipeline.cpp
+    include/visualizer/RenderPipeline.h
 
 )
 
@@ -80,21 +91,13 @@ set(SRC_FILES
 )
 
 # -------------------------------------------------
-# Visual Studio Filters
-# -------------------------------------------------
-
-source_group("src\\audio" FILES ${AUDIO_SRC})
-source_group("src\\UI" FILES ${UI_SRC})
-source_group("src\\visualizer\\opengl" FILES ${VISUALIZER_SRC})
-source_group("root" FILES ${ROOT_SRC})
-
-# -------------------------------------------------
 # Executable
 # -------------------------------------------------
 
 add_executable(AudioVisualizer
     ${SRC_FILES}
     ${KISSFFT_SRC}
+    ${TINYFILE_SRC}
 )
 
 # -------------------------------------------------
@@ -107,11 +110,7 @@ target_include_directories(AudioVisualizer PRIVATE
 )
 
 # -------------------------------------------------
-# Link external libraries
-# -------------------------------------------------
-
-# -------------------------------------------------
-# Link external libraries
+# Link libraries
 # -------------------------------------------------
 
 target_link_directories(AudioVisualizer PRIVATE lib)
@@ -122,6 +121,18 @@ target_link_libraries(AudioVisualizer
     glew32
     opengl32
 )
+
+# -------------------------------------------------
+# Mirror folder structure in Visual Studio
+# -------------------------------------------------
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
+    ${SRC_FILES}
+    ${KISSFFT_SRC}
+    ${IMGUI_SRC}
+    ${TINYFILE_SRC}
+)
+
 # -------------------------------------------------
 # Output directory
 # -------------------------------------------------

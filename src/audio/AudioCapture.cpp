@@ -3,6 +3,7 @@
 #include <iostream>
 #include "audio/AudioCapture.h"
 
+
 AudioCapture::AudioCapture()
 {
     if (ma_engine_init(NULL, &engine) != MA_SUCCESS)
@@ -10,20 +11,22 @@ AudioCapture::AudioCapture()
         std::cout << "Failed to initialize audio engine\n";
     }
 
-    sampleRate = 0;
-    frameCount = 0;
 }
 
 AudioCapture::~AudioCapture()
 {
-    ma_sound_uninit(&sound);
-    ma_decoder_uninit(&decoder);
+    for (auto& [id, clip] : clips)
+    {
+        ma_sound_uninit(&clip->sound);
+        ma_decoder_uninit(&clip->decoder);
+    }
+
     ma_engine_uninit(&engine);
 }
 
-bool AudioCapture::LoadFile(const std::string& filepath)
+bool AudioCapture::LoadAudio(int id, const std::string& filepath)
 {
-    ma_result result;
+    auto clip = std::make_unique<AudioClip>();
 
     ma_decoder_config config = ma_decoder_config_init(
         ma_format_f32,
@@ -31,114 +34,100 @@ bool AudioCapture::LoadFile(const std::string& filepath)
         44100
     );
 
-    result = ma_decoder_init_file(filepath.c_str(), &config, &decoder);
-
-    if (result != MA_SUCCESS)
+    if (ma_decoder_init_file(filepath.c_str(), &config, &clip->decoder) != MA_SUCCESS)
     {
-        std::cout << "Failed to load audio file\n";
+        std::cout << "Failed to load audio\n";
         return false;
     }
 
-    sampleRate = decoder.outputSampleRate;
+    clip->sampleRate = clip->decoder.outputSampleRate;
+    clip->channels = clip->decoder.outputChannels;
 
     ma_uint64 totalFrames = 0;
-    ma_decoder_get_length_in_pcm_frames(&decoder, &totalFrames);
+    ma_decoder_get_length_in_pcm_frames(&clip->decoder, &totalFrames);
 
-    frameCount = totalFrames;
+    clip->frameCount = totalFrames;
 
-    uint32_t channels = decoder.outputChannels;
+    clip->samples.resize(clip->frameCount * clip->channels);
 
-    samples.resize(frameCount * channels);
-
-    result = ma_decoder_read_pcm_frames(
-        &decoder,
-        samples.data(),
-        frameCount,
+    ma_decoder_read_pcm_frames(
+        &clip->decoder,
+        clip->samples.data(),
+        clip->frameCount,
         NULL
     );
 
-    if (result != MA_SUCCESS)
-    {
-        std::cout << "Failed to read PCM frames\n";
-        return false;
-    }
-
-    result = ma_sound_init_from_file(
+    if (ma_sound_init_from_file(
         &engine,
         filepath.c_str(),
         0,
         NULL,
         NULL,
-        &sound
-    );
-
-    if (result != MA_SUCCESS)
+        &clip->sound) != MA_SUCCESS)
     {
         std::cout << "Failed to initialize sound\n";
         return false;
     }
 
-    std::cout << "Audio Loaded\n";
-    std::cout << "Sample Rate: " << sampleRate << "\n";
-    std::cout << "Frames: " << frameCount << "\n";
+    clips[id] = std::move(clip);
 
     return true;
 }
 
-void AudioCapture::Play()
+void AudioCapture::Play(int id)
 {
-    ma_sound_start(&sound);
+    ma_sound_start(&clips[id]->sound);
 }
 
-void AudioCapture::Stop()
+void AudioCapture::Stop(int id)
 {
-    ma_sound_stop(&sound);
+    ma_sound_stop(&clips[id]->sound);
 }
 
-const std::vector<float>& AudioCapture::GetSamples() const
-{
-    return samples;
-}
-
-uint32_t AudioCapture::GetSampleRate() const
-{
-    return sampleRate;
-}
-
-uint64_t AudioCapture::GetFrameCount() const
-{
-    return frameCount;
-}
-
-uint64_t AudioCapture::GetPlaybackFrame() const
+uint64_t AudioCapture::GetPlaybackFrame(int id)
 {
     ma_uint64 cursor = 0;
-    ma_sound_get_cursor_in_pcm_frames(&sound, &cursor);
+    ma_sound_get_cursor_in_pcm_frames(&clips[id]->sound, &cursor);
     return cursor;
 }
 
-std::vector<float> AudioCapture::GetSamplesWindow(size_t fftSize) const
+std::vector<float> AudioCapture::GetSamplesWindow(int id, size_t fftSize)
 {
     std::vector<float> window(fftSize);
 
-    uint64_t frame = GetPlaybackFrame();
+    auto it = clips.find(id);
 
-    uint32_t channels = decoder.outputChannels;
+    if (it == clips.end())
+    {
+        std::cout << "Audio ID not found\n";
+        return window;
+    }
+
+    AudioClip& clip = *it->second;
+
+    uint64_t frame = GetPlaybackFrame(id);
+
+    if (frame >= clip.frameCount)
+        frame = clip.frameCount - 1;
 
     for (size_t i = 0; i < fftSize; i++)
     {
         uint64_t frameIndex = frame + i;
 
-        if (frameIndex >= frameCount)
+        if (frameIndex >= clip.frameCount)
         {
             window[i] = 0.0f;
             continue;
         }
 
-        size_t sampleIndex = frameIndex * channels;
+        size_t sampleIndex = frameIndex * clip.channels;
 
-        float left = samples[sampleIndex];
-        float right = samples[sampleIndex + 1];
+        float left = clip.samples[sampleIndex];
+
+        float right = left;
+
+        if (clip.channels > 1)
+            right = clip.samples[sampleIndex + 1];
 
         window[i] = (left + right) * 0.5f;
     }

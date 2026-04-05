@@ -7,6 +7,8 @@
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 
+#include "panels/ViewportPanel.h"
+
 
 namespace Lengine {
 	class ImGuiLayer {
@@ -25,6 +27,7 @@ namespace Lengine {
 		// process event and return true if ImGui consumed it (optional)
 		void processEvent(const SDL_Event& e);
 		void beginFrame();
+		void renderPanels(const uint32_t finalImage);
 		void endFrame();
 
 
@@ -36,6 +39,11 @@ namespace Lengine {
 		void SetModernDarkTheme();
 	private:
 		bool& isRunning;
+		
+		ViewportPanel  viewport;
+
+		void BeginDockspace();
+
 
 
 	};

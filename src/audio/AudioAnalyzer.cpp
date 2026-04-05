@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+
+
 AudioAnalyzer::AudioAnalyzer(size_t size)
 {
     fftSize = size;
