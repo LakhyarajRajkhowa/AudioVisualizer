@@ -31,6 +31,7 @@ target_include_directories(imgui PUBLIC
     external/GL
     external/nlohmann
     external/tinyfiledialogs
+    external/stb
 )
 
 # -------------------------------------------------
@@ -45,6 +46,11 @@ set(KISSFFT_SRC
 # -------------------------------------------------
 # Source Files
 # -------------------------------------------------
+
+set(UTILS_SRC
+    include/utils/TextureLoader.h
+    include/utils/Paths.h
+)
 
 set(AUDIO_SRC
     src/audio/AudioCapture.cpp
@@ -61,9 +67,13 @@ set(UI_SRC
     src/UI/Window.cpp
     src/UI/ImguiLayer.cpp
     src/UI/panels/ViewportPanel.cpp
+    src/UI/panels/AudioLibraryPanel.cpp
+    src/UI/panels/AudioPlayPanel.cpp
     include/UI/Window.h
     include/UI/ImguiLayer.h
     include/UI/panels/ViewportPanel.h
+    include/UI/panels/AudioLibraryPanel.h
+    include/UI/panels/AudioPlayPanel.h
 
 )
 
@@ -88,6 +98,7 @@ set(SRC_FILES
     ${AUDIO_SRC}
     ${UI_SRC}
     ${VISUALIZER_SRC}
+    ${UTILS_SRC}
 )
 
 # -------------------------------------------------

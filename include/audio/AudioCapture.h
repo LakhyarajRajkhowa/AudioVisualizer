@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdint>
 #include <unordered_map>
+#include <memory>
 
 #include <miniaudio/miniaudio.h>
 
@@ -28,19 +29,29 @@ public:
 
     bool LoadAudio(int id, const std::string& filepath);
 
+    void InitAudio(int id);
+    void InitSamples(int id);
+
     void Play(int id);
+    void Pause(int id);
     void Stop(int id);
 
+    std::string GetName(int id);
     std::vector<float> GetSamplesWindow(int id, size_t fftSize);
 
     uint64_t GetPlaybackFrame(int id);
+    uint64_t GetTotalFrames(int id);
+    uint32_t GetSampleRate(int id);
+
+    void SeekFrame(int id, uint64_t frame);
+
+
 
 private:
 
     ma_engine engine;
-
     std::unordered_map<int, std::unique_ptr<AudioClip>> clips;
-
+    std::unordered_map<int, bool> sampledAudio;
 
 
 };

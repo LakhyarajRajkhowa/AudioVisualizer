@@ -8,6 +8,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 
 #include "panels/ViewportPanel.h"
+#include "panels/AudioLibraryPanel.h"
 
 
 namespace Lengine {
@@ -16,9 +17,14 @@ namespace Lengine {
 		ImGuiLayer(
 			bool& run,
 			SDL_Window* window,
-			SDL_GLContext glContext
+			SDL_GLContext glContext,
+			const std::unordered_map<int, AudioMeta>& db,
+			std::unordered_set<int>& aa,
+			AudioCapture& ac
 			) :
-			isRunning(run)
+			isRunning(run),
+			audioLibraryPanel(db, aa, ac, playPanel),
+			audioDatabase(db)
 		{
 			init(window, glContext);
 		};
@@ -27,7 +33,9 @@ namespace Lengine {
 		// process event and return true if ImGui consumed it (optional)
 		void processEvent(const SDL_Event& e);
 		void beginFrame();
-		void renderPanels(const uint32_t finalImage);
+		void renderPanels();
+		void renderViewport(const int id, const uint32_t finalImage);
+
 		void endFrame();
 
 
@@ -41,9 +49,12 @@ namespace Lengine {
 		bool& isRunning;
 		
 		ViewportPanel  viewport;
+		AudioLibraryPanel audioLibraryPanel;
+		PlayPanel playPanel;
+
+		const std::unordered_map<int, AudioMeta>& audioDatabase;
 
 		void BeginDockspace();
-
 
 
 	};

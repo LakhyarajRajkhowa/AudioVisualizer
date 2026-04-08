@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include "framebuffers/Framebuffer.h"
 
 #define FRAME_WIDTH 1920
@@ -84,10 +85,25 @@ namespace Lengine {
     {
     public:
         RenderPipeline() {
-            Init();
+            // Depth
+            glEnable(GL_DEPTH_TEST);
+
+            // Face culling
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+            glFrontFace(GL_CCW);
+
+            // Blending
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            // MSAA
+            glEnable(GL_MULTISAMPLE);
         }
-        void Init();
+        void Init(const int id);
+
         void Render(
+            const int id,
             const float bass,
             const float mid,
             const float treble,
@@ -96,16 +112,18 @@ namespace Lengine {
         );
 
 
-        uint32_t GetFinalImage() const
+        uint32_t GetFinalImage(const int id) const
         {
-            return mainFramebuffer->GetColorAttachment(0);
+            return frameBuffers.at(id)->GetColorAttachment(0);
         }
     private:
-        std::unique_ptr<Framebuffer> mainFramebuffer;
-        RenderGraph renderGraph;
-        RenderContext ctx;
+        std::unordered_map<int, std::unique_ptr<Framebuffer>> frameBuffers;
+        std::unordered_map<int, RenderGraph> renderGraphs;
+        std::unordered_map<int, RenderContext> renderContexts;
 
-        void CreateFrameBuffers();
-        void BuildGraph();
+        std::unordered_map<int, bool> initializedPipelines;
+
+        void CreateFrameBuffer(const int id);
+        void BuildGraph(const int id);
     };
 }

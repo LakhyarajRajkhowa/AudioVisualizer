@@ -40,22 +40,7 @@ bool AudioCapture::LoadAudio(int id, const std::string& filepath)
         return false;
     }
 
-    clip->sampleRate = clip->decoder.outputSampleRate;
-    clip->channels = clip->decoder.outputChannels;
-
-    ma_uint64 totalFrames = 0;
-    ma_decoder_get_length_in_pcm_frames(&clip->decoder, &totalFrames);
-
-    clip->frameCount = totalFrames;
-
-    clip->samples.resize(clip->frameCount * clip->channels);
-
-    ma_decoder_read_pcm_frames(
-        &clip->decoder,
-        clip->samples.data(),
-        clip->frameCount,
-        NULL
-    );
+  
 
     if (ma_sound_init_from_file(
         &engine,
@@ -73,16 +58,52 @@ bool AudioCapture::LoadAudio(int id, const std::string& filepath)
 
     return true;
 }
+void AudioCapture::InitAudio(int id)
+{
+    auto& clip = clips[id];
+
+    clip->sampleRate = clip->decoder.outputSampleRate;
+    clip->channels = clip->decoder.outputChannels;
+
+    ma_uint64 totalFrames = 0;
+    ma_decoder_get_length_in_pcm_frames(&clip->decoder, &totalFrames);
+
+    clip->frameCount = totalFrames;
+
+    
+}
+
+void AudioCapture::InitSamples(int id)
+{
+    auto& clip = clips[id];
+
+    clip->samples.resize(clip->frameCount * clip->channels);
+
+    ma_decoder_read_pcm_frames(
+        &clip->decoder,
+        clip->samples.data(),
+        clip->frameCount,
+        NULL
+    );
+   
+}
 
 void AudioCapture::Play(int id)
 {
     ma_sound_start(&clips[id]->sound);
 }
 
-void AudioCapture::Stop(int id)
+void AudioCapture::Pause(int id)
 {
     ma_sound_stop(&clips[id]->sound);
 }
+
+void AudioCapture::Stop(int id)
+{
+    ma_sound_stop(&clips[id]->sound);
+    ma_sound_seek_to_pcm_frame(&clips[id]->sound, 0); 
+}
+
 
 uint64_t AudioCapture::GetPlaybackFrame(int id)
 {
@@ -91,8 +112,30 @@ uint64_t AudioCapture::GetPlaybackFrame(int id)
     return cursor;
 }
 
+uint64_t AudioCapture::GetTotalFrames(int id)
+{
+   
+    return clips[id]->frameCount;
+}
+
+uint32_t AudioCapture::GetSampleRate(int id)
+{
+   
+    return clips[id]->sampleRate;
+}
+
+void AudioCapture::SeekFrame(int id, uint64_t frame)
+{
+    ma_sound_seek_to_pcm_frame(&clips[id]->sound, frame);
+}
+
 std::vector<float> AudioCapture::GetSamplesWindow(int id, size_t fftSize)
 {
+    if (!sampledAudio[id]) {
+        InitSamples(id);
+        
+        sampledAudio[id] = true;
+    }
     std::vector<float> window(fftSize);
 
     auto it = clips.find(id);

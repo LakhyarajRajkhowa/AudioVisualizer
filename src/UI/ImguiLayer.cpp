@@ -34,10 +34,13 @@ void ImGuiLayer::beginFrame() {
 
 }
 
-void ImGuiLayer::renderPanels(const uint32_t finalImage) {
+void ImGuiLayer::renderPanels() {
     BeginDockspace();
+    audioLibraryPanel.Draw();
+}
 
-    viewport.OnImGuiRender(finalImage);
+void ImGuiLayer::renderViewport(const int id, const uint32_t finalImage) {
+    viewport.OnImGuiRender(id, audioDatabase.at(id).name, finalImage);
 }
 
 

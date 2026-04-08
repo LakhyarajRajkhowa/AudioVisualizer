@@ -2,28 +2,16 @@
 
 using namespace Lengine;
 
-void RenderPipeline::Init(){
-    // Depth
-    glEnable(GL_DEPTH_TEST);
+void RenderPipeline::Init(const int id){
 
-    // Face culling
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    CreateFrameBuffer(id);
+    BuildGraph(id);
 
-    // Blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // MSAA
-    glEnable(GL_MULTISAMPLE);
-
-    CreateFrameBuffers();
-    BuildGraph();
+    initializedPipelines[id] = true;
 }
 
-void RenderPipeline::CreateFrameBuffers() {
-    mainFramebuffer.reset();
+void RenderPipeline::CreateFrameBuffer(const int id) {
+    frameBuffers[id].reset();
 
     FramebufferSpecification mainBufferSpec;
     mainBufferSpec.width = FRAME_WIDTH;
@@ -32,19 +20,19 @@ void RenderPipeline::CreateFrameBuffers() {
     mainBufferSpec.colorFormats = { GL_RGBA8 };
     mainBufferSpec.colorAttachmentCount = 1;
 
-    mainFramebuffer = std::make_unique<Framebuffer>(mainBufferSpec);
+    frameBuffers[id] = std::make_unique<Framebuffer>(mainBufferSpec);
 
 }
 
-void RenderPipeline::BuildGraph() {
-    renderGraph.Clear();
+void RenderPipeline::BuildGraph(const int id) {
+    renderGraphs[id].Clear();
 
-    if (ctx.mode == VisualMode::MODE_1) {
+    if (renderContexts[id].mode == VisualMode::MODE_1) {
 
         Framebuffer& target =
-            *mainFramebuffer;
+            *frameBuffers.at(id);
 
-        renderGraph.AddPass(
+        renderGraphs[id].AddPass(
             std::make_unique<Mode_1_Pass>(
                 target
             )
@@ -53,6 +41,7 @@ void RenderPipeline::BuildGraph() {
 }
 
 void RenderPipeline::Render(
+    const int id,
     const float bass,
     const float mid,
     const float treble,
@@ -60,12 +49,14 @@ void RenderPipeline::Render(
     VisualMode mode
 ) 
 {
-    ctx.bass = bass;
-    ctx.mid = mid;
-    ctx.treble = treble;
-    ctx.smoothedSpectrum = smoothedSpectrum;
+    if (!initializedPipelines[id]) {
+        Init(id);
+    }
+    renderContexts[id].bass = bass;
+    renderContexts[id].mid = mid;
+    renderContexts[id].treble = treble;
+    renderContexts[id].smoothedSpectrum = smoothedSpectrum;
+    renderContexts[id].mode = mode;
 
-    ctx.mode = mode;
-
-    renderGraph.Execute(ctx);
+    renderGraphs[id].Execute(renderContexts[id]);
 }

@@ -1,9 +1,14 @@
 {
     "audios": [
         {
-            "filepath": "../assets/audio/shape_of_you.mp3",
+            "filepath": "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/assets/audio/shape_of_you.mp3",
             "id": 1,
             "name": "shape_of_you"
+        },
+        {
+            "filepath": "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/assets/audio/One Direction - What Makes You Beautiful 7m.mp3",
+            "id": 2,
+            "name": "One Direction - What Makes You Beautiful 7m"
         }
     ]
 }

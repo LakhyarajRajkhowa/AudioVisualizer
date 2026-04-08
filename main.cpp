@@ -6,6 +6,8 @@
 
 
 #define SDL_MAIN_HANDLED
+#define STB_IMAGE_IMPLEMENTATION
+
 
 #include <SDL/SDL.h>
 #include <GL/glew.h>
@@ -17,7 +19,7 @@
 #include "audio/AudioManager.h"
 
 #include "UI/Window.h"
-#include "UI/ImguiLayer.h"
+#include "UI/ImguiLayer.h" 
 
 #include "visualizer/RenderPipeline.h"
 
@@ -28,20 +30,28 @@
 
 #define FFT_SIZE 1024
 
+std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
 
 int main(int argc, char* argv[])
 {
     bool running = true;
 
-    AudioManager audioManager("C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/database/audiodb.json");
+    AudioManager audioManager(rootFolderPath + "database/audiodb.json");
 
     AudioCapture audio;
 
-    std::string path = "../assets/audio/shape_of_you.mp3";
+    std::string path = rootFolderPath + "assets/audio/shape_of_you.mp3";
+    std::string path2 = rootFolderPath + "assets/audio/One Direction - What Makes You Beautiful 7m.mp3";
+
 
     int id = audioManager.ImportAudio(path);
+    int id2 = audioManager.ImportAudio(path2);
+
     audio.LoadAudio(id, path);
-    audio.Play(1);
+    audio.LoadAudio(id2, path2);
+
+
+
 
 
     Lengine::Window window("Audio Visualizer Test", 1280, 720, 0); 
@@ -49,7 +59,10 @@ int main(int argc, char* argv[])
     Lengine::ImGuiLayer imguiLayer(
         running,
         window.getWindow(),
-        window.getGlContext()
+        window.getGlContext(),
+        audioManager.GetAudios(),
+        audioManager.GetActiveAudios(),
+        audio
     );
 
     Lengine::RenderPipeline renderPipeline;
@@ -76,27 +89,35 @@ int main(int argc, char* argv[])
 
         imguiLayer.beginFrame();
 
+        for (auto& id : audioManager.GetActiveAudios()) {
 
-        auto sample_window = audio.GetSamplesWindow(1, FFT_SIZE);
 
-        fft.Process(sample_window);
+            auto sample_window = audio.GetSamplesWindow(id, FFT_SIZE);
 
-        const auto& spectrum = fft.GetSpectrum();
+            fft.Process(sample_window);
 
-        analyzer.Analyze(spectrum);
+            const auto& spectrum = fft.GetSpectrum();
 
-        float bass = analyzer.GetBass();
-        float mid = analyzer.GetMid();
-        float treble = analyzer.GetTreble();
+            analyzer.Analyze(spectrum);
 
-        const auto& smoothed = analyzer.GetSmoothedSpectrum();
+            float bass = analyzer.GetBass();
+            float mid = analyzer.GetMid();
+            float treble = analyzer.GetTreble();
 
-        renderPipeline.Render(bass, mid, treble, smoothed, Lengine::VisualMode::MODE_1);
+            const auto& smoothed = analyzer.GetSmoothedSpectrum();
 
-        SDL_Delay(LIMIT_DELAY); 
+            renderPipeline.Render(id, bass, mid, treble, smoothed, Lengine::VisualMode::MODE_1);
 
-        imguiLayer.renderPanels(renderPipeline.GetFinalImage());
+            imguiLayer.renderViewport(id, renderPipeline.GetFinalImage(id));
+
+
+        }
+
+        imguiLayer.renderPanels();
         imguiLayer.endFrame();
+
+
+        SDL_Delay(LIMIT_DELAY);
         window.swapBuffer();
     }
 

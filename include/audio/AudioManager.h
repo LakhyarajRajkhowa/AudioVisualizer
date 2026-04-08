@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -30,9 +31,21 @@ public:
         return audioDB;
     }
 
+    std::unordered_set<int>& GetActiveAudios()
+    {
+        return activeAudios;
+    }
+
+    const std::unordered_set<int>& GetActiveAudios() const
+    {
+        return activeAudios;
+    }
+
 private:
 
     std::unordered_map<int, AudioMeta> audioDB;
+
+    std::unordered_set<int> activeAudios;
 
     int nextID = 1;
 
