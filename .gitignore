@@ -2,7 +2,6 @@
 /build/
 /build-*/
 out/
-bin/
 
 # CMake generated files
 CMakeFiles/
