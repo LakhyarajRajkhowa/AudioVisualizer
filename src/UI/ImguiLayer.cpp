@@ -141,7 +141,9 @@ void ImGuiLayer::SetModernDarkTheme()
     style.TabBorderSize = 0.0f;
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    io.Fonts->AddFontFromFileTTF("../assets/fonts/roboto-font/RobotoRegular-3m4L.ttf", 15.0f);
+    const char* path = (rootFolderPath + "/assets/fonts/roboto-font/RobotoRegular-3m4L.ttf").c_str();
+
+    io.Fonts->AddFontFromFileTTF( path, 15.0f);
 
 }
 

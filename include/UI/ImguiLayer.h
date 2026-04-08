@@ -10,6 +10,8 @@
 #include "panels/ViewportPanel.h"
 #include "panels/AudioLibraryPanel.h"
 
+#include "utils/Paths.h"
+
 
 namespace Lengine {
 	class ImGuiLayer {
