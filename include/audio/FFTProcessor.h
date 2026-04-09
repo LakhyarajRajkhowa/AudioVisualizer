@@ -1,8 +1,20 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 #include <cstddef>
+
 #include <kissfft/kiss_fftr.h>
+
+struct FFTState
+{
+    std::vector<float> window;
+    std::vector<float> windowed;
+    std::vector<float> spectrum;
+    std::vector<kiss_fft_cpx> fftOutput;
+
+    kiss_fftr_cfg cfg = nullptr;
+};
 
 class FFTProcessor
 {
@@ -11,26 +23,18 @@ public:
     FFTProcessor(size_t fftSize);
     ~FFTProcessor();
 
-    void Process(const std::vector<float>& samples);
-    // Performs FFT on the first fftSize samples
+    void Process(int id, const std::vector<float>& samples);
 
-    const std::vector<float>& GetSpectrum() const;
-    // Returns frequency magnitude spectrum
+    const std::vector<float>& GetSpectrum(int id);
 
     size_t GetFFTSize() const;
-    // Returns FFT window size
 
 private:
 
     size_t fftSize;
 
-    std::vector<float> window;       // Hann window coefficients
-    std::vector<float> spectrum;     // Output frequency magnitudes
-    std::vector<float> windowed;     // Windowed input samples
+    std::unordered_map<int, FFTState> states;
 
-    std::vector<kiss_fft_cpx> fftOutput; // Raw complex FFT output
-
-    kiss_fftr_cfg cfg;               // KissFFT configuration (FFT plan)
-
-    void GenerateHannWindow();
+    void InitState(int id);
+    void GenerateHannWindow(std::vector<float>& window);
 };

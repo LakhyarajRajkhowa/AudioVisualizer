@@ -1,81 +1,93 @@
 #include "audio/AudioAnalyzer.h"
 
 #include <algorithm>
-
-
+#include <iostream>
 
 AudioAnalyzer::AudioAnalyzer(size_t size)
 {
     fftSize = size;
-
-    smoothedSpectrum.resize(fftSize / 2, 0.0f);
-
-    bass = 0.0f;
-    mid = 0.0f;
-    treble = 0.0f;
-
     smoothingFactor = 0.85f;
 }
 
-void AudioAnalyzer::Analyze(const std::vector<float>& spectrum)
+
+void AudioAnalyzer::InitState(int id)
 {
-    SmoothSpectrum(spectrum);
-    ComputeBands();
+    AnalyzerState state;
+
+    state.smoothedSpectrum.resize(fftSize / 2, 0.0f);
+
+    states[id] = std::move(state);
 }
 
-void AudioAnalyzer::SmoothSpectrum(const std::vector<float>& spectrum)
+
+void AudioAnalyzer::Analyze(int id, const std::vector<float>& spectrum)
 {
-    size_t count = std::min(smoothedSpectrum.size(), spectrum.size());
+    if (!states.count(id))
+        InitState(id);
+
+    AnalyzerState& state = states[id];
+
+    SmoothSpectrum(state, spectrum);
+    ComputeBands(state);
+}
+
+
+void AudioAnalyzer::SmoothSpectrum(AnalyzerState& state, const std::vector<float>& spectrum)
+{
+    size_t count = std::min(state.smoothedSpectrum.size(), spectrum.size());
 
     for (size_t i = 0; i < count; i++)
     {
-        smoothedSpectrum[i] =
-            smoothedSpectrum[i] * smoothingFactor +
+        state.smoothedSpectrum[i] =
+            state.smoothedSpectrum[i] * smoothingFactor +
             spectrum[i] * (1.0f - smoothingFactor);
     }
 }
 
-void AudioAnalyzer::ComputeBands()
-{
-    bass = 0.0f;
-    mid = 0.0f;
-    treble = 0.0f;
 
-    size_t n = smoothedSpectrum.size();
+void AudioAnalyzer::ComputeBands(AnalyzerState& state)
+{
+    state.bass = 0.0f;
+    state.mid = 0.0f;
+    state.treble = 0.0f;
+
+    size_t n = state.smoothedSpectrum.size();
 
     size_t bassEnd = n * 0.10f;
     size_t midEnd = n * 0.40f;
 
     for (size_t i = 0; i < bassEnd; i++)
-        bass += smoothedSpectrum[i];
+        state.bass += state.smoothedSpectrum[i];
 
     for (size_t i = bassEnd; i < midEnd; i++)
-        mid += smoothedSpectrum[i];
+        state.mid += state.smoothedSpectrum[i];
 
     for (size_t i = midEnd; i < n; i++)
-        treble += smoothedSpectrum[i];
+        state.treble += state.smoothedSpectrum[i];
 
-    bass /= bassEnd + 1;
-    mid /= (midEnd - bassEnd) + 1;
-    treble /= (n - midEnd) + 1;
+    state.bass /= bassEnd + 1;
+    state.mid /= (midEnd - bassEnd) + 1;
+    state.treble /= (n - midEnd) + 1;
 }
 
-const std::vector<float>& AudioAnalyzer::GetSmoothedSpectrum() const
+
+const std::vector<float>& AudioAnalyzer::GetSmoothedSpectrum(int id)
 {
-    return smoothedSpectrum;
+    return states[id].smoothedSpectrum;
 }
 
-float AudioAnalyzer::GetBass() const
+
+float AudioAnalyzer::GetBass(int id)
 {
-    return bass;
+    return states[id].bass;
 }
 
-float AudioAnalyzer::GetMid() const
+float AudioAnalyzer::GetMid(int id)
 {
-    return mid;
+    return states[id].mid;
 }
 
-float AudioAnalyzer::GetTreble() const
+float AudioAnalyzer::GetTreble(int id)
 {
-    return treble;
+    return states[id].treble;
 }

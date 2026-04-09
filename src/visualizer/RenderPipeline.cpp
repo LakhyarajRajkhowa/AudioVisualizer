@@ -11,33 +11,50 @@ void RenderPipeline::Init(const int id){
 }
 
 void RenderPipeline::CreateFrameBuffer(const int id) {
-    frameBuffers[id].reset();
+    msaaFramebuffers[id].reset();
+    resolveFramebuffers[id].reset();
 
-    FramebufferSpecification mainBufferSpec;
-    mainBufferSpec.width = FRAME_WIDTH;
-    mainBufferSpec.height = FRAME_HEIGHT;
-    mainBufferSpec.samples = 1;
-    mainBufferSpec.colorFormats = { GL_RGBA8 };
-    mainBufferSpec.colorAttachmentCount = 1;
+    FramebufferSpecification msaaSpec;
+    msaaSpec.width = FRAME_WIDTH;
+    msaaSpec.height = FRAME_HEIGHT;
+    msaaSpec.samples = 4;
 
-    frameBuffers[id] = std::make_unique<Framebuffer>(mainBufferSpec);
+    FramebufferSpecification resolveSpec;
+    resolveSpec.width = FRAME_WIDTH;
+    resolveSpec.height = FRAME_HEIGHT;
+    resolveSpec.samples = 1;
+
+    msaaFramebuffers[id] = std::make_unique<Framebuffer>(msaaSpec);
+    resolveFramebuffers[id] = std::make_unique<Framebuffer>(resolveSpec);
 
 }
 
 void RenderPipeline::BuildGraph(const int id) {
     renderGraphs[id].Clear();
 
-    if (renderContexts[id].mode == VisualMode::MODE_1) {
+    Framebuffer& src =
+        *msaaFramebuffers[id];
 
-        Framebuffer& target =
-            *frameBuffers.at(id);
+    Framebuffer& dest =
+        *resolveFramebuffers[id];
+
+    if (renderContexts[id].mode == RenderMode::SPHERICAL_WAVES) {
 
         renderGraphs[id].AddPass(
-            std::make_unique<Mode_1_Pass>(
-                target
+            std::make_unique<SPHEREICAL_WAVES>(
+                src,
+                resourceManager
             )
         );
     }
+
+    
+    renderGraphs[id].AddPass(
+        std::make_unique<ResolvePass>(
+            src,
+            dest
+        )
+    );
 }
 
 void RenderPipeline::Render(
@@ -46,7 +63,8 @@ void RenderPipeline::Render(
     const float mid,
     const float treble,
     const std::vector<float>& smoothedSpectrum,
-    VisualMode mode
+    RenderMode mode,
+    const float time
 ) 
 {
     if (!initializedPipelines[id]) {
@@ -57,6 +75,7 @@ void RenderPipeline::Render(
     renderContexts[id].treble = treble;
     renderContexts[id].smoothedSpectrum = smoothedSpectrum;
     renderContexts[id].mode = mode;
+    renderContexts[id].time = time;
 
     renderGraphs[id].Execute(renderContexts[id]);
 }

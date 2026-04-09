@@ -1,7 +1,17 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 #include <cstddef>
+
+struct AnalyzerState
+{
+    std::vector<float> smoothedSpectrum;
+
+    float bass = 0.0f;
+    float mid = 0.0f;
+    float treble = 0.0f;
+};
 
 class AudioAnalyzer
 {
@@ -9,28 +19,25 @@ public:
 
     AudioAnalyzer(size_t fftSize);
 
-    void Analyze(const std::vector<float>& spectrum);
+    void Analyze(int id, const std::vector<float>& spectrum);
 
-    const std::vector<float>& GetSmoothedSpectrum() const;
+    const std::vector<float>& GetSmoothedSpectrum(int id);
 
-    float GetBass() const;
-    float GetMid() const;
-    float GetTreble() const;
+    float GetBass(int id);
+    float GetMid(int id);
+    float GetTreble(int id);
 
 private:
 
-    void SmoothSpectrum(const std::vector<float>& spectrum);
-    void ComputeBands();
+    void InitState(int id);
+    void SmoothSpectrum(AnalyzerState& state, const std::vector<float>& spectrum);
+    void ComputeBands(AnalyzerState& state);
 
 private:
 
     size_t fftSize;
 
-    std::vector<float> smoothedSpectrum;
-
-    float bass;
-    float mid;
-    float treble;
-
     float smoothingFactor;
+
+    std::unordered_map<int, AnalyzerState> states;
 };

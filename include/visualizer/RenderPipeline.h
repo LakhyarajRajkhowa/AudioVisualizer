@@ -2,27 +2,13 @@
 
 #include <unordered_map>
 #include "framebuffers/Framebuffer.h"
+#include "Renderer.h"
 
 #define FRAME_WIDTH 1920
 #define FRAME_HEIGHT 1080
 
 namespace Lengine {
 
-    enum class VisualMode{
-        MODE_1 = 1
-    };
-
-	struct RenderContext {
-
-        float bass;
-        float mid;
-        float treble;
-
-        std::vector<float> smoothedSpectrum;
-
-        VisualMode mode = VisualMode::MODE_1;
-        
-	};
 
     class RenderPass
     {
@@ -59,32 +45,110 @@ namespace Lengine {
         std::vector<std::unique_ptr<RenderPass>> passes;
     };
 
-    class Mode_1_Pass : public RenderPass
+    class SPHEREICAL_WAVES : public RenderPass
     {
     public:
-        Mode_1_Pass(
-            Framebuffer& target)
-            :  target(target) {}
+        SPHEREICAL_WAVES(
+            Framebuffer& target, ResourceManager& rm)
+            :  target(target),
+            resourceManager(rm),
+            renderer(rm)
+        {
+            renderer.Init();
+        }
 
         void Execute(RenderContext& ctx) override
         {
             target.Bind();
-            glClearColor(1, 0, 0, 1);
+
+            
+
+            glViewport(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+            glClearColor(0, 0, 0, 1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             
-            // here goes actual rendering
+            ctx.frameWidth = target.GetWidth();
+            ctx.frameHeight = target.GetHeight();
+
+            renderer.Render(ctx);
 
             target.Unbind();
         }
 
     private:
         Framebuffer& target;
+        ResourceManager& resourceManager;
+        SpheremeshRenderer renderer;
     };
+
+    class SPHEREICAL_WAVES2 : public RenderPass
+    {
+    public:
+        SPHEREICAL_WAVES2(
+            Framebuffer& target, ResourceManager& rm)
+            : target(target),
+            resourceManager(rm),
+            renderer(rm)
+        {
+            renderer.Init();
+        }
+
+        void Execute(RenderContext& ctx) override
+        {
+            target.Bind();
+
+
+
+            glViewport(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+            glClearColor(1, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            ctx.frameWidth = target.GetWidth();
+            ctx.frameHeight = target.GetHeight();
+
+            renderer.Render(ctx);
+
+            target.Unbind();
+        }
+
+    private:
+        Framebuffer& target;
+        ResourceManager& resourceManager;
+        SpheremeshRenderer renderer;
+    };
+
+    class ResolvePass : public RenderPass
+    {
+    public:
+        ResolvePass(Framebuffer& src, Framebuffer& dst)
+            : source(src), destination(dst) {}
+
+        void Execute(RenderContext& ctx) override
+        {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, source.GetID());
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.GetID());
+
+
+            glBlitFramebuffer(
+                0, 0, source.GetWidth(), source.GetHeight(),
+                0, 0, destination.GetWidth(), destination.GetHeight(),
+                GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
+                GL_NEAREST
+            );
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
+
+    private:
+        Framebuffer& source;
+        Framebuffer& destination;
+    };
+
 
     class RenderPipeline
     {
     public:
-        RenderPipeline() {
+        RenderPipeline(ResourceManager& rm) :resourceManager(rm){
             // Depth
             glEnable(GL_DEPTH_TEST);
 
@@ -99,6 +163,8 @@ namespace Lengine {
 
             // MSAA
             glEnable(GL_MULTISAMPLE);
+
+            glEnable(GL_DEBUG_OUTPUT);
         }
         void Init(const int id);
 
@@ -108,16 +174,19 @@ namespace Lengine {
             const float mid,
             const float treble,
             const std::vector<float>& smoothedSpectrum,
-            VisualMode mode
+            RenderMode mode,
+            float time
         );
 
 
-        uint32_t GetFinalImage(const int id) const
+        uint32_t GetFinalImage(int id)
         {
-            return frameBuffers.at(id)->GetColorAttachment(0);
+            return resolveFramebuffers[id]->GetColorAttachment(0);
         }
     private:
-        std::unordered_map<int, std::unique_ptr<Framebuffer>> frameBuffers;
+        std::unordered_map<int, std::unique_ptr<Framebuffer>> msaaFramebuffers;
+        std::unordered_map<int, std::unique_ptr<Framebuffer>> resolveFramebuffers;
+
         std::unordered_map<int, RenderGraph> renderGraphs;
         std::unordered_map<int, RenderContext> renderContexts;
 
@@ -125,5 +194,7 @@ namespace Lengine {
 
         void CreateFrameBuffer(const int id);
         void BuildGraph(const int id);
+
+        ResourceManager& resourceManager;
     };
 }

@@ -9,6 +9,11 @@
             "filepath": "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/assets/audio/One Direction - What Makes You Beautiful 7m.mp3",
             "id": 2,
             "name": "One Direction - What Makes You Beautiful 7m"
+        },
+        {
+            "filepath": "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/assets/audio/Luis Fonsi - Despacito ft. Daddy Yankee.mp3",
+            "id": 3,
+            "name": "Luis Fonsi - Despacito ft. Daddy Yankee"
         }
     ]
 }

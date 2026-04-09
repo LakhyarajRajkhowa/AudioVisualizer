@@ -32,6 +32,7 @@ target_include_directories(imgui PUBLIC
     external/nlohmann
     external/tinyfiledialogs
     external/stb
+    external/tinyobjloader
 )
 
 # -------------------------------------------------
@@ -50,6 +51,14 @@ set(KISSFFT_SRC
 set(UTILS_SRC
     include/utils/TextureLoader.h
     include/utils/Paths.h
+    include/utils/ObjLoader.h
+    include/utils/Timer.h
+)
+
+set(RESOURCES_SRC
+    include/resources/ResourceManager.h
+    include/resources/Mesh.h
+    src/resources/Mesh.cpp
 )
 
 set(AUDIO_SRC
@@ -87,6 +96,10 @@ set(VISUALIZER_SRC
     src/visualizer/RenderPipeline.cpp
     include/visualizer/RenderPipeline.h
 
+     src/visualizer/Renderer.cpp
+    include/visualizer/Renderer.h
+
+
 )
 
 set(ROOT_SRC
@@ -99,6 +112,7 @@ set(SRC_FILES
     ${UI_SRC}
     ${VISUALIZER_SRC}
     ${UTILS_SRC}
+    ${RESOURCES_SRC}
 )
 
 # -------------------------------------------------

@@ -25,6 +25,8 @@
 
 #include "external/tinyfiledialogs/tinyfiledialogs.h"
 
+#include "utils/Timer.h"
+
 
 #define LIMIT_DELAY 16 // LIMIT_FPS = 1000 / LIMIT_DELAY
 
@@ -36,22 +38,26 @@ int main(int argc, char* argv[])
 {
     bool running = true;
 
+    Timer timer;
+
     AudioManager audioManager(rootFolderPath + "database/audiodb.json");
+    ResourceManager resouceManager;
 
     AudioCapture audio;
 
     std::string path = rootFolderPath + "assets/audio/shape_of_you.mp3";
     std::string path2 = rootFolderPath + "assets/audio/One Direction - What Makes You Beautiful 7m.mp3";
+    std::string path3 = rootFolderPath + "assets/audio/Luis Fonsi - Despacito ft. Daddy Yankee.mp3";
 
 
     int id = audioManager.ImportAudio(path);
     int id2 = audioManager.ImportAudio(path2);
+    int id3 = audioManager.ImportAudio(path3);
+
 
     audio.LoadAudio(id, path);
     audio.LoadAudio(id2, path2);
-
-
-
+    audio.LoadAudio(id3, path3);
 
 
     Lengine::Window window("Audio Visualizer Test", 1280, 720, 0); 
@@ -65,7 +71,7 @@ int main(int argc, char* argv[])
         audio
     );
 
-    Lengine::RenderPipeline renderPipeline;
+    Lengine::RenderPipeline renderPipeline(resouceManager);
 
 
     FFTProcessor fft(FFT_SIZE);
@@ -91,22 +97,23 @@ int main(int argc, char* argv[])
 
         for (auto& id : audioManager.GetActiveAudios()) {
 
+           
 
             auto sample_window = audio.GetSamplesWindow(id, FFT_SIZE);
 
-            fft.Process(sample_window);
+            fft.Process(id, sample_window);
 
-            const auto& spectrum = fft.GetSpectrum();
+            const auto& spectrum = fft.GetSpectrum(id);
 
-            analyzer.Analyze(spectrum);
+            analyzer.Analyze(id, spectrum);
 
-            float bass = analyzer.GetBass();
-            float mid = analyzer.GetMid();
-            float treble = analyzer.GetTreble();
+            float bass = analyzer.GetBass(id);
+            float mid = analyzer.GetMid(id);
+            float treble = analyzer.GetTreble(id);
 
-            const auto& smoothed = analyzer.GetSmoothedSpectrum();
+            const auto& smoothed = analyzer.GetSmoothedSpectrum(id);
 
-            renderPipeline.Render(id, bass, mid, treble, smoothed, Lengine::VisualMode::MODE_1);
+            renderPipeline.Render(id, bass, mid, treble, smoothed, RenderMode::SPHERICAL_WAVES, timer.GetTime());
 
             imguiLayer.renderViewport(id, renderPipeline.GetFinalImage(id));
 

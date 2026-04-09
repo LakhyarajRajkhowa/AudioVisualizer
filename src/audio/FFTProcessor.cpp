@@ -2,29 +2,27 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 
 #define M_PI 3.14159265358979323846
+
 
 FFTProcessor::FFTProcessor(size_t size)
 {
     fftSize = size;
-
-    window.resize(fftSize);
-    spectrum.resize(fftSize / 2);
-    windowed.resize(fftSize);
-    fftOutput.resize(fftSize / 2 + 1);
-
-    GenerateHannWindow();
-
-    cfg = kiss_fftr_alloc(fftSize, 0, nullptr, nullptr);
 }
 
 FFTProcessor::~FFTProcessor()
 {
-    free(cfg);
+    for (auto& [id, state] : states)
+    {
+        if (state.cfg)
+            free(state.cfg);
+    }
 }
 
-void FFTProcessor::GenerateHannWindow()
+
+void FFTProcessor::GenerateHannWindow(std::vector<float>& window)
 {
     for (size_t i = 0; i < fftSize; i++)
     {
@@ -32,34 +30,56 @@ void FFTProcessor::GenerateHannWindow()
     }
 }
 
-void FFTProcessor::Process(const std::vector<float>& samples)
+
+void FFTProcessor::InitState(int id)
+{
+    FFTState state;
+
+    state.window.resize(fftSize);
+    state.windowed.resize(fftSize);
+    state.spectrum.resize(fftSize / 2);
+    state.fftOutput.resize(fftSize / 2 + 1);
+
+    GenerateHannWindow(state.window);
+
+    state.cfg = kiss_fftr_alloc(fftSize, 0, nullptr, nullptr);
+
+    states[id] = std::move(state);
+}
+
+
+void FFTProcessor::Process(int id, const std::vector<float>& samples)
 {
     if (samples.size() < fftSize)
         return;
 
-    // Apply window
+    if (!states.count(id))
+        InitState(id);
+
+    FFTState& state = states[id];
+
     for (size_t i = 0; i < fftSize; i++)
     {
-        windowed[i] = samples[i] * window[i];
+        state.windowed[i] = samples[i] * state.window[i];
     }
 
-    // Run FFT
-    kiss_fftr(cfg, windowed.data(), fftOutput.data());
+    kiss_fftr(state.cfg, state.windowed.data(), state.fftOutput.data());
 
-    // Compute magnitudes
     for (size_t i = 0; i < fftSize / 2; i++)
     {
-        float real = fftOutput[i].r;
-        float imag = fftOutput[i].i;
+        float real = state.fftOutput[i].r;
+        float imag = state.fftOutput[i].i;
 
-        spectrum[i] = sqrtf(real * real + imag * imag);
+        state.spectrum[i] = sqrtf(real * real + imag * imag);
     }
 }
 
-const std::vector<float>& FFTProcessor::GetSpectrum() const
+
+const std::vector<float>& FFTProcessor::GetSpectrum(int id)
 {
-    return spectrum;
+    return states[id].spectrum;
 }
+
 
 size_t FFTProcessor::GetFFTSize() const
 {
