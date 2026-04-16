@@ -53,6 +53,7 @@ set(UTILS_SRC
     include/utils/Paths.h
     include/utils/ObjLoader.h
     include/utils/Timer.h
+    include/utils/FileLoader.h
 )
 
 set(RESOURCES_SRC
@@ -98,6 +99,12 @@ set(VISUALIZER_SRC
 
      src/visualizer/Renderer.cpp
     include/visualizer/Renderer.h
+
+    src/visualizer/WaveBarRenderer.cpp
+    include/visualizer/WaveBarRenderer.h
+
+    src/visualizer/RingRenderer.cpp
+    include/visualizer/RingRenderer.h
 
 
 )

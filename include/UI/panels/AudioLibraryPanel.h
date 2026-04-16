@@ -12,6 +12,7 @@
 
 #include "utils/TextureLoader.h"
 #include "utils/Paths.h"
+#include "utils/FileLoader.h"
 
 #include "AudioPlayPanel.h"
 
@@ -24,15 +25,15 @@ public:
         const std::unordered_map<int, AudioMeta>& db,
         std::unordered_set<int>& aa,
         AudioCapture& ac ,
-        PlayPanel& pp,
-        Lengine::RenderPipeline& rp
+        AudioManager& am,
+        PlayPanel& pp
      
         ) :
         audioDB(db),
         activeAudios(aa),
         audioCapture(ac),
-        playPanel(pp),
-        renderPipeline(rp)
+        audioManager(am),
+        playPanel(pp)
         
     {
         iconTexture = LoadTexture(rootFolderPath + "assets/icons/audio_icon.png");
@@ -49,9 +50,9 @@ private:
     std::queue<int> audioToBeUnactivated;
 
     AudioCapture& audioCapture;
+    AudioManager& audioManager;
     PlayPanel& playPanel;
     
-    Lengine::RenderPipeline& renderPipeline;
     unsigned int iconTexture = 0;
 
     float iconSize = 64.0f;

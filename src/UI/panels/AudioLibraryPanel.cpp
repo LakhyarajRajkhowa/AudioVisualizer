@@ -3,13 +3,8 @@
 void AudioLibraryPanel::Draw()
 {
     while (!audioToBeUnactivated.empty()) {
-        int id = audioToBeUnactivated.front();
-
-        activeAudios.erase(id);
-        playPanel.isPlaying[id] = false;
-
-        renderPipeline.Destroy(id);
-        audioCapture.DestroySamples(id);
+        activeAudios.erase(audioToBeUnactivated.front());
+        playPanel.isPlaying[audioToBeUnactivated.front()] = false;
 
         audioToBeUnactivated.pop();
 
@@ -20,6 +15,21 @@ void AudioLibraryPanel::Draw()
     }
 
     ImGui::Begin("Audio Library");
+
+    if (ImGui::BeginPopupContextWindow("AudioLibraryContext", ImGuiPopupFlags_MouseButtonRight))
+    {
+        if (ImGui::MenuItem("Import Audio"))
+        {
+            std::string path = OpenAudioFileDialog();
+
+            if (!path.empty())
+            {
+                audioManager.ImportAudio(path);
+            }
+        }
+
+        ImGui::EndPopup();
+    }
 
     if (audioDB.empty()) {
         ImGui::Text("No Audio Loaded");
@@ -49,6 +59,7 @@ void AudioLibraryPanel::Draw()
             ImVec2(iconSize, iconSize)))
         {
             if (!activeAudios.count(audio.id)) {
+                audioCapture.LoadAudio(audio.id, audio.filepath);
                 audioCapture.InitAudio(audio.id);
                 audioCapture.InitSamples(audio.id);
                 activeAudios.insert(audio.id);
