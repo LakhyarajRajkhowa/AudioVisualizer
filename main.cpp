@@ -32,7 +32,7 @@
 
 #define FFT_SIZE 1024
 
-std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
+std::string rootFolderPath = "C:/Users/ASUS/OneDrive/Desktop/OOPS_project/AudioVisualizer/";
 
 int main(int argc, char* argv[])
 {
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 
             const auto& smoothed = analyzer.GetSmoothedSpectrum(id);
 
-            renderPipeline.Render(id, bass, mid, treble, smoothed, RenderMode::SPHERICAL_WAVES, timer.GetTime());
+            renderPipeline.Render(id, bass, mid, treble, smoothed, RenderMode::HOLOGRAM_WAVES, timer.GetTime());
 
             imguiLayer.renderViewport(id, renderPipeline.GetFinalImage(id));
 
