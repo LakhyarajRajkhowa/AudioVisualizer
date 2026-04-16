@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdint>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 
 #include <miniaudio/miniaudio.h>
@@ -45,6 +46,8 @@ public:
 
     void SeekFrame(int id, uint64_t frame);
 
+    const std::unordered_set<int>& GetLoadedAudios() const { return loadedAudios; }
+
 
 
 private:
@@ -52,6 +55,7 @@ private:
     ma_engine engine;
     std::unordered_map<int, std::unique_ptr<AudioClip>> clips;
     std::unordered_map<int, bool> sampledAudio;
+    std::unordered_set<int> loadedAudios;
 
 
 };

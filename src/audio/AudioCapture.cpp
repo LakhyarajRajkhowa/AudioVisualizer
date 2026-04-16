@@ -26,6 +26,8 @@ AudioCapture::~AudioCapture()
 
 bool AudioCapture::LoadAudio(int id, const std::string& filepath)
 {
+    if (loadedAudios.find(id) != loadedAudios.end()) return true;
+
     auto clip = std::make_unique<AudioClip>();
 
     ma_decoder_config config = ma_decoder_config_init(
@@ -55,6 +57,8 @@ bool AudioCapture::LoadAudio(int id, const std::string& filepath)
     }
 
     clips[id] = std::move(clip);
+
+    loadedAudios.insert(id);
 
     return true;
 }

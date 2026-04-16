@@ -1,19 +1,9 @@
 {
     "audios": [
         {
-            "filepath": "C:/Users/ASUS/OneDrive/Desktop/OOPS_project/AudioVisualizer/assets/audio/shape_of_you.mp3",
+            "filepath": "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/assets/audio/shape_of_you.mp3",
             "id": 1,
             "name": "shape_of_you"
-        },
-        {
-            "filepath": "C:/Users/ASUS/OneDrive/Desktop/OOPS_project/AudioVisualizer/assets/audio/One Direction - What Makes You Beautiful 7m.mp3",
-            "id": 2,
-            "name": "One Direction - What Makes You Beautiful 7m"
-        },
-        {
-            "filepath": "C:/Users/ASUS/OneDrive/Desktop/OOPS_project/AudioVisualizer/assets/audio/Luis Fonsi - Despacito ft. Daddy Yankee.mp3",
-            "id": 3,
-            "name": "Luis Fonsi - Despacito ft. Daddy Yankee"
         }
     ]
 }

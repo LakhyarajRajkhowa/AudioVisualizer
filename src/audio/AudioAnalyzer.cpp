@@ -53,7 +53,6 @@ void AudioAnalyzer::ComputeBands(AnalyzerState& state)
 
     size_t n = state.smoothedSpectrum.size();
 
-    std::cout << n << std::endl;
     size_t bassEnd = n * 0.10f;
     size_t midEnd = n * 0.40f;
 

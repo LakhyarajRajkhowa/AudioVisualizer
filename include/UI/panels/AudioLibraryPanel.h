@@ -12,6 +12,7 @@
 
 #include "utils/TextureLoader.h"
 #include "utils/Paths.h"
+#include "utils/FileLoader.h"
 
 #include "AudioPlayPanel.h"
 
@@ -21,13 +22,15 @@ public:
     AudioLibraryPanel(
         const std::unordered_map<int, AudioMeta>& db,
         std::unordered_set<int>& aa,
-        AudioCapture& ac ,
+        AudioCapture& ac,
+        AudioManager& am,
         PlayPanel& pp
      
         ) :
         audioDB(db),
         activeAudios(aa),
         audioCapture(ac),
+        audioManager(am),
         playPanel(pp)
         
     {
@@ -45,6 +48,7 @@ private:
     std::queue<int> audioToBeUnactivated;
 
     AudioCapture& audioCapture;
+    AudioManager& audioManager;
     PlayPanel& playPanel;
 
     unsigned int iconTexture = 0;

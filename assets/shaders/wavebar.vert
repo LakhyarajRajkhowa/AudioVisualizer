@@ -9,19 +9,16 @@ uniform int   uNumBars;
 uniform float uTime;
 uniform float uBass;
 
-// Aesthetic Control Uniforms
-uniform float uBarAspect;
-uniform float uMaxBarHeight;  // Base scaling
-uniform float uMaxCap;        // HARD CEILING (The "Cut-off") 
-uniform float uBassBoost;
-uniform float uPulseSpeed;
-uniform float uPulseSpread;   // New: Spreads the pulse across bars
-uniform float uYOffset;
 uniform float uTotalWidth;
 
 out float vAmplitude;
 out float vNormIndex;
-out float vLocalY;      
+out float vLocalY;     
+
+const float yOffset = -1.0f;
+const float barGap = 0.5f; 
+const float maxHeight = 1.0f;
+
 
 void main()
 {
@@ -29,17 +26,9 @@ void main()
     float normIdx = aBarIndex / (n - 1.0); 
     
     float barSlot = uTotalWidth / n; 
-    float barWidth = barSlot * (1.0 - uBarAspect); 
-
-    // EVEN SPREAD: Adding (normIdx * uPulseSpread) offsets the sine wave
-    // so the pulse travels across the bars instead of hitting them all at once.
-    float pulse = 1.0 + uBass * uBassBoost * sin(uTime * uPulseSpeed + (normIdx * uPulseSpread));
+    float barWidth = barSlot * (1.0 - barGap); 
     
-    // 1. Calculate desired height 
-    float barHeight = aAmplitude * uMaxBarHeight * pulse;
-    
-    // 2. APPLY CAP: This "cuts" the bars if they exceed the limit
-    barHeight = min(barHeight, uMaxCap);
+    float barHeight = aAmplitude * maxHeight;
     
     // Ensure a tiny minimum so they don't disappear completely 
     barHeight = max(barHeight, 0.005);
@@ -48,7 +37,7 @@ void main()
     worldPos.x = (-uTotalWidth / 2.0) + barSlot * (aBarIndex + 0.5) + aPos.x * barWidth; 
     
     // Baseline growth 
-    worldPos.y = uYOffset + (aPos.y * barHeight);
+    worldPos.y = yOffset + (aPos.y * barHeight);
 
     vAmplitude = aAmplitude;
     vNormIndex = normIdx;

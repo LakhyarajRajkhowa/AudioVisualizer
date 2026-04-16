@@ -53,6 +53,7 @@ set(UTILS_SRC
     include/utils/Paths.h
     include/utils/ObjLoader.h
     include/utils/Timer.h
+    include/utils/FileLoader.h
 )
 
 set(RESOURCES_SRC

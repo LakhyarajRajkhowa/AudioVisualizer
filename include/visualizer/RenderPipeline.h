@@ -144,6 +144,8 @@ namespace Lengine {
         uint32_t GetFinalImage(int id)
         { return resolveFramebuffers[id]->GetColorAttachment(0); }
 
+        const std::unordered_map<int, RenderContext>& GetRenderContexts() const { return renderContexts; }
+
     private:
         std::unordered_map<int, std::unique_ptr<Framebuffer>> msaaFramebuffers;
         std::unordered_map<int, std::unique_ptr<Framebuffer>> resolveFramebuffers;

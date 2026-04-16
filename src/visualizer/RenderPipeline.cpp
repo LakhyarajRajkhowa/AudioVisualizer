@@ -41,7 +41,7 @@ void RenderPipeline::BuildGraph(const int id)
             renderGraphs[id].AddPass(std::make_unique<HOLOGRAM_WAVES>(src, resourceManager));
             break;
 
-        case RenderMode::RING_WAVES:                         // ← NEW
+        case RenderMode::RING_WAVES:                        
             renderGraphs[id].AddPass(std::make_unique<RING_WAVES>(src, resourceManager));
             break;
 

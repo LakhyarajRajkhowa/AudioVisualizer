@@ -32,7 +32,7 @@
 
 #define FFT_SIZE 1024
 
-std::string rootFolderPath = "C:/Users/ASUS/OneDrive/Desktop/OOPS_project/AudioVisualizer/";
+std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
 
 int main(int argc, char* argv[])
 {
@@ -46,18 +46,7 @@ int main(int argc, char* argv[])
     AudioCapture audio;
 
     std::string path = rootFolderPath + "assets/audio/shape_of_you.mp3";
-    std::string path2 = rootFolderPath + "assets/audio/One Direction - What Makes You Beautiful 7m.mp3";
-    std::string path3 = rootFolderPath + "assets/audio/Luis Fonsi - Despacito ft. Daddy Yankee.mp3";
-
-
     int id = audioManager.ImportAudio(path);
-    int id2 = audioManager.ImportAudio(path2);
-    int id3 = audioManager.ImportAudio(path3);
-
-
-    audio.LoadAudio(id, path);
-    audio.LoadAudio(id2, path2);
-    audio.LoadAudio(id3, path3);
 
 
     Lengine::Window window("Audio Visualizer Test", 1280, 720, 0); 
@@ -66,6 +55,7 @@ int main(int argc, char* argv[])
         running,
         window.getWindow(),
         window.getGlContext(),
+        audioManager,
         audioManager.GetAudios(),
         audioManager.GetActiveAudios(),
         audio
@@ -113,7 +103,10 @@ int main(int argc, char* argv[])
 
             const auto& smoothed = analyzer.GetSmoothedSpectrum(id);
 
-            renderPipeline.Render(id, bass, mid, treble, smoothed, RenderMode::HOLOGRAM_WAVES, timer.GetTime());
+            auto& renderContexts = renderPipeline.GetRenderContexts();
+
+            
+            renderPipeline.Render(id, bass, mid, treble, smoothed, RenderMode::RING_WAVES, timer.GetTime());
 
             imguiLayer.renderViewport(id, renderPipeline.GetFinalImage(id));
 
