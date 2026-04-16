@@ -10,6 +10,15 @@ void RenderPipeline::Init(const int id){
     initializedPipelines[id] = true;
 }
 
+void RenderPipeline::Destroy(const int id) {
+    msaaFramebuffers[id].reset();
+    resolveFramebuffers[id].reset();
+
+    renderGraphs[id].Clear();
+   
+    initializedPipelines[id] = false;
+}
+
 void RenderPipeline::CreateFrameBuffer(const int id) {
     msaaFramebuffers[id].reset();
     resolveFramebuffers[id].reset();

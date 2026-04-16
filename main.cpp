@@ -34,6 +34,8 @@
 
 std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
 
+
+
 int main(int argc, char* argv[])
 {
     bool running = true;
@@ -62,17 +64,18 @@ int main(int argc, char* argv[])
 
     Lengine::Window window("Audio Visualizer Test", 1280, 720, 0); 
 
+    Lengine::RenderPipeline renderPipeline(resouceManager);
+
+
     Lengine::ImGuiLayer imguiLayer(
         running,
         window.getWindow(),
         window.getGlContext(),
         audioManager.GetAudios(),
         audioManager.GetActiveAudios(),
-        audio
+        audio,
+        renderPipeline
     );
-
-    Lengine::RenderPipeline renderPipeline(resouceManager);
-
 
     FFTProcessor fft(FFT_SIZE);
     AudioAnalyzer analyzer(FFT_SIZE);

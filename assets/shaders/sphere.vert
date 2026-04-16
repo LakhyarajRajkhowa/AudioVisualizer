@@ -11,18 +11,31 @@ uniform float uMid;
 uniform float uTreble;
 uniform float uTime;
 
+/* ===== Tunable parameters ===== */
+
+uniform float uBassWeight;
+uniform float uMidWeight;
+uniform float uTrebleWeight;
+
+uniform float uWaveFrequency;
+uniform float uDisplacementScale;
+
 out float intensity;
 
 void main()
 {
     vec3 pos = aPos;
 
-    float audio = uBass * 1.5 + uMid + uTreble * 0.5;
+    float audio =
+        uBass * uBassWeight +
+        uMid * uMidWeight +
+        uTreble * uTrebleWeight;
 
-    float wave = sin(pos.x * 4.0 + uTime) *
-                 cos(pos.y * 4.0 + uTime);
+    float wave =
+        sin(pos.x * uWaveFrequency + uTime) *
+        cos(pos.y * uWaveFrequency + uTime);
 
-    float displacement = audio * wave * 0.02;
+    float displacement = audio * wave * uDisplacementScale;
 
     pos += aNormal * displacement;
 

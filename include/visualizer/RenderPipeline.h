@@ -167,6 +167,7 @@ namespace Lengine {
             glEnable(GL_DEBUG_OUTPUT);
         }
         void Init(const int id);
+        void Destroy(const int id);
 
         void Render(
             const int id,

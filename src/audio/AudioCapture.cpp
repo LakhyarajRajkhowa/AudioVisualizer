@@ -20,7 +20,7 @@ AudioCapture::~AudioCapture()
         ma_sound_uninit(&clip->sound);
         ma_decoder_uninit(&clip->decoder);
     }
-
+   
     ma_engine_uninit(&engine);
 }
 
@@ -87,6 +87,15 @@ void AudioCapture::InitSamples(int id)
     );
    
 }
+
+void AudioCapture::DestroySamples(int id)
+{
+   // auto& clip = clips[id];
+   
+   // std::vector<float>().swap(clip->samples);
+
+}
+
 
 void AudioCapture::Play(int id)
 {

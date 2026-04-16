@@ -3,8 +3,13 @@
 void AudioLibraryPanel::Draw()
 {
     while (!audioToBeUnactivated.empty()) {
-        activeAudios.erase(audioToBeUnactivated.front());
-        playPanel.isPlaying[audioToBeUnactivated.front()] = false;
+        int id = audioToBeUnactivated.front();
+
+        activeAudios.erase(id);
+        playPanel.isPlaying[id] = false;
+
+        renderPipeline.Destroy(id);
+        audioCapture.DestroySamples(id);
 
         audioToBeUnactivated.pop();
 

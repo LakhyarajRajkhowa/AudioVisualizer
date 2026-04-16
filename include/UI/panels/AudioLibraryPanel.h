@@ -15,6 +15,8 @@
 
 #include "AudioPlayPanel.h"
 
+#include "visualizer/RenderPipeline.h"
+
 class AudioLibraryPanel
 {
 public:
@@ -22,13 +24,15 @@ public:
         const std::unordered_map<int, AudioMeta>& db,
         std::unordered_set<int>& aa,
         AudioCapture& ac ,
-        PlayPanel& pp
+        PlayPanel& pp,
+        Lengine::RenderPipeline& rp
      
         ) :
         audioDB(db),
         activeAudios(aa),
         audioCapture(ac),
-        playPanel(pp)
+        playPanel(pp),
+        renderPipeline(rp)
         
     {
         iconTexture = LoadTexture(rootFolderPath + "assets/icons/audio_icon.png");
@@ -46,7 +50,8 @@ private:
 
     AudioCapture& audioCapture;
     PlayPanel& playPanel;
-
+    
+    Lengine::RenderPipeline& renderPipeline;
     unsigned int iconTexture = 0;
 
     float iconSize = 64.0f;

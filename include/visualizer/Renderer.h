@@ -5,6 +5,8 @@
 #include "resources/ResourceManager.h"
 #include "utils/Paths.h"
 
+#include <imgui/imgui.h>
+
 enum class RenderMode {
     SPHERICAL_WAVES = 1
 };
@@ -30,6 +32,19 @@ struct RenderContext {
 
 };
 
+struct WaveParams
+{
+    float bassWeight = 1.5f;
+    float midWeight = 1.0f;
+    float trebleWeight = 0.5f;
+
+    float waveFrequency = 4.0f;
+    float displacementScale = 0.01f;
+
+    float rotationSpeed = 0.3f;
+    float scale = 1.0f;
+};
+
 class Renderer
 {
 protected:
@@ -52,6 +67,26 @@ class SpheremeshRenderer : public Renderer
 public:
     SpheremeshRenderer(ResourceManager& rm)
         : Renderer(rm) {}
+
+    WaveParams params;
+
+    void TuneParams(WaveParams& params) {
+        ImGui::Begin("Tune");
+
+        ImGui::SliderFloat("Bass Weight", &params.bassWeight, 0.0f, 5.0f);
+        ImGui::SliderFloat("Mid Weight", &params.midWeight, 0.0f, 20.0f);
+        ImGui::SliderFloat("Treble Weight", &params.trebleWeight, 0.0f, 5.0f);
+
+        ImGui::SliderFloat("Wave Frequency", &params.waveFrequency, 0.1f, 20.0f);
+        ImGui::SliderFloat("Displacement", &params.displacementScale, 0.0f, 0.1f);
+
+        ImGui::SliderFloat("Rotation Speed", &params.rotationSpeed, 0.0f, 5.0f);
+        ImGui::SliderFloat("Scale", &params.scale, 0.0f, 10.0f);
+
+
+
+        ImGui::End();
+    }
 
     void Init() override
     {
@@ -80,18 +115,33 @@ public:
         if (!shader || !mesh)
             return;
 
+        TuneParams(params);
+
         shader->use();
 
-        // Send audio uniforms
+        // Audio
         shader->setFloat("uBass", context.bass);
         shader->setFloat("uMid", context.mid);
         shader->setFloat("uTreble", context.treble);
 
-        // Send time
+        // Time
         shader->setFloat("uTime", context.time);
 
-        // Example MVP (replace later with your camera)
+        // Tunable parameters
+        shader->setFloat("uBassWeight", params.bassWeight);
+        shader->setFloat("uMidWeight", params.midWeight);
+        shader->setFloat("uTrebleWeight", params.trebleWeight);
+        shader->setFloat("uWaveFrequency", params.waveFrequency);
+        shader->setFloat("uDisplacementScale", params.displacementScale);
         glm::mat4 model = glm::mat4(1.0f);
+
+        float rotationSpeed = 0.3f;
+        float angle = context.time * rotationSpeed;
+
+        model = glm::rotate(model, angle, glm::vec3(0, 1, 0));
+        model = glm::rotate(model, angle * 0.5f, glm::vec3(1, 0, 0));
+
+        model = glm::scale(model, glm::vec3(params.scale));
 
         glm::mat4 view = glm::lookAt(
             glm::vec3(0, 0, 3),
@@ -110,14 +160,15 @@ public:
 
         shader->setMat4("uMVP", mvp);
 
-        // Wireframe look like visualizers
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glLineWidth(4.0f);
 
         glBindVertexArray(mesh->VAO);
 
-         
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES,
+            static_cast<GLsizei>(mesh->indices.size()),
+            GL_UNSIGNED_INT,
+            0);
 
         glBindVertexArray(0);
 

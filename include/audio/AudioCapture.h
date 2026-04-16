@@ -31,6 +31,8 @@ public:
 
     void InitAudio(int id);
     void InitSamples(int id);
+    void DestroySamples(int id);
+
 
     void Play(int id);
     void Pause(int id);
