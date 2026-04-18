@@ -30,7 +30,7 @@
 
 #define LIMIT_DELAY 16 // LIMIT_FPS = 1000 / LIMIT_DELAY
 
-#define FFT_SIZE 1024
+#define FFT_SIZE 256
 
 std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
 

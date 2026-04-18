@@ -13,12 +13,12 @@ uniform float uTime;
 
 /* ===== Tunable parameters ===== */
 
-uniform float uBassWeight;
-uniform float uMidWeight;
-uniform float uTrebleWeight;
+const float uBassWeight = 2.5;
+const float uMidWeight = 0.42;
+const float uTrebleWeight = 1.0;
 
-uniform float uWaveFrequency;
-uniform float uDisplacementScale;
+const float uWaveFrequency = 0.7;
+const float uDisplacementScale = 0.1;
 
 out float intensity;
 

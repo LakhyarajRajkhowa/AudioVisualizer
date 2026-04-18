@@ -106,6 +106,9 @@ set(VISUALIZER_SRC
     src/visualizer/RingRenderer.cpp
     include/visualizer/RingRenderer.h
 
+    src/visualizer/SphereMeshRenderer.cpp
+    include/visualizer/SphereMeshRenderer.h
+
 
 )
 

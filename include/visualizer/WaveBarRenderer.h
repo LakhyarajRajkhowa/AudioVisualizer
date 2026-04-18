@@ -20,7 +20,7 @@ class WaveBarRenderer : public Renderer
 {
 public:
     // Number of spectrum bars to display.
-    static constexpr int NUM_BARS = 32;
+    static constexpr int NUM_BARS = 16;
 
     explicit WaveBarRenderer(ResourceManager& rm)
         : Renderer(rm) {

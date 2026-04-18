@@ -4,7 +4,8 @@
 #include "framebuffers/Framebuffer.h"
 #include "Renderer.h"
 #include "WaveBarRenderer.h"
-#include "RingRenderer.h"        // ← NEW
+#include "RingRenderer.h"
+#include "SphereMeshRenderer.h"
 
 #define FRAME_WIDTH  1920
 #define FRAME_HEIGHT 1080
