@@ -18,6 +18,7 @@ out float vLocalY;
 const float yOffset = -1.0f;
 const float barGap = 0.5f; 
 const float maxHeight = 1.0f;
+const float minHeight = 0.005;
 
 
 void main()
@@ -31,7 +32,7 @@ void main()
     float barHeight = aAmplitude * maxHeight;
     
     // Ensure a tiny minimum so they don't disappear completely 
-    barHeight = max(barHeight, 0.005);
+    barHeight = max(barHeight, minHeight);
 
     vec2 worldPos;
     worldPos.x = (-uTotalWidth / 2.0) + barSlot * (aBarIndex + 0.5) + aPos.x * barWidth; 
