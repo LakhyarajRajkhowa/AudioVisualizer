@@ -32,7 +32,7 @@
 
 #define FFT_SIZE 1024
 
-std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
+std::string rootFolderPath = "C:/Users/binit/oops/AudioVisualizer/";
 
 
 
