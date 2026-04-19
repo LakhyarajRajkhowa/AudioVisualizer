@@ -1,7 +1,7 @@
 #include "UI/panels/AudioPlayPanel.h"
 #include <imgui.h>
 
-void PlayPanel::Draw(AudioCapture& audio, std::queue<int>& audioToBeUnactivated, const int id, const std::string name)
+void PlayPanel::Draw(AudioCapture& audio, std::unordered_map<int, bool>&  isPlaying, std::queue<int>& audioToBeUnactivated, const int id, const std::string name)
 {
     ImGui::Begin("Play");
     ImGui::PushID(id);

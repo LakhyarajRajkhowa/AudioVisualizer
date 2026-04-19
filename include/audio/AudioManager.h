@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include <unordered_map>
 #include <unordered_set>
 #include <string>
@@ -9,6 +10,8 @@
 #include <filesystem>
 
 #include <nlohmann/json.hpp>
+
+#include "visualizer/RenderPipeline.h"
 
 struct AudioMeta
 {
@@ -41,11 +44,16 @@ public:
         return activeAudios;
     }
 
-private:
+    std::unordered_set<int> activeAudios;
+    std::queue<int> audioToBeUnactivated;
+    std::unordered_map<int, bool>  isPlaying;
 
     std::unordered_map<int, AudioMeta> audioDB;
 
-    std::unordered_set<int> activeAudios;
+    void Update(Lengine::RenderPipeline& rp);
+
+private:
+
 
     int nextID = 1;
 

@@ -2,16 +2,15 @@
 
 void AudioLibraryPanel::Draw()
 {
-    while (!audioToBeUnactivated.empty()) {
-        activeAudios.erase(audioToBeUnactivated.front());
-        playPanel.isPlaying[audioToBeUnactivated.front()] = false;
-
-        audioToBeUnactivated.pop();
-
-    }
-
-    for (auto& id : activeAudios) {
-        playPanel.Draw(audioCapture, audioToBeUnactivated, id, audioDB.at(id).name);
+    
+    for (auto& id : audioManager.activeAudios) {
+        playPanel.Draw(
+            audioCapture,
+            audioManager.isPlaying,
+            audioManager.audioToBeUnactivated,
+            id,
+            audioManager.audioDB.at(id).name
+        );
     }
 
     ImGui::Begin("Audio Library");
@@ -31,7 +30,7 @@ void AudioLibraryPanel::Draw()
         ImGui::EndPopup();
     }
 
-    if (audioDB.empty()) {
+    if (audioManager.audioDB.empty()) {
         ImGui::Text("No Audio Loaded");
     }
 
@@ -46,7 +45,7 @@ void AudioLibraryPanel::Draw()
 
     ImGui::Columns(columnCount, 0, false);
 
-    for (auto& [id, audio] : audioDB)
+    for (auto& [id, audio] : audioManager.audioDB)
     {
         ImGui::PushID(id);
 
@@ -58,13 +57,13 @@ void AudioLibraryPanel::Draw()
             (ImTextureID)(intptr_t)iconTexture,
             ImVec2(iconSize, iconSize)))
         {
-            if (!activeAudios.count(audio.id)) {
+            if (!audioManager.activeAudios.count(audio.id)) {
                 audioCapture.LoadAudio(audio.id, audio.filepath);
-                activeAudios.insert(audio.id);
+                audioManager.activeAudios.insert(audio.id);
             }
 
             audioCapture.Play(audio.id);
-            playPanel.isPlaying[audio.id] = true;
+            audioManager.isPlaying[audio.id] = true;
 
         }
 

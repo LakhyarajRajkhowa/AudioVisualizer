@@ -22,12 +22,11 @@ namespace Lengine {
 			SDL_GLContext glContext,
 			AudioManager& am,
 			const std::unordered_map<int, AudioMeta>& db,
-			std::unordered_set<int>& aa,
 			AudioCapture& ac,
 			Lengine::RenderPipeline& rp
 			) :
 			isRunning(run),
-			audioLibraryPanel(db, aa, ac, am, playPanel),
+			audioLibraryPanel( ac, am, playPanel),
 			audioDatabase(db)
 		{
 			init(window, glContext);

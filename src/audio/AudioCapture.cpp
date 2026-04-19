@@ -30,7 +30,6 @@ bool AudioCapture::LoadAudio(int id, const std::string& filepath)
     auto clip = std::make_unique<AudioClip>();
     clip->filepath = filepath;
 
-    // Decoder config (safe)
     ma_decoder_config config = ma_decoder_config_init_default();
     config.format = ma_format_f32;
 
@@ -40,7 +39,6 @@ bool AudioCapture::LoadAudio(int id, const std::string& filepath)
         return false;
     }
 
-    // STREAMING playback
     if (ma_sound_init_from_file(
         &engine,
         filepath.c_str(),
@@ -134,7 +132,6 @@ std::string AudioCapture::GetName(int id)
     return it->second->filepath;
 }
 
-// 🔥 STREAMED SAMPLE WINDOW (NO RAM STORAGE)
 std::vector<float> AudioCapture::GetSamplesWindow(int id, size_t fftSize)
 {
     std::vector<float> window(fftSize);

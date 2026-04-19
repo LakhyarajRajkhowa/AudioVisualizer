@@ -3,6 +3,20 @@
 
 using json = nlohmann::json;
 
+void AudioManager::Update(Lengine::RenderPipeline& rp) {
+    while (!audioToBeUnactivated.empty()) {
+
+        const int id = audioToBeUnactivated.front();
+        activeAudios.erase(id);
+        isPlaying[id] = false;
+
+        rp.Destroy(id);
+
+        audioToBeUnactivated.pop();
+
+    }
+}
+
 std::string AudioManager::ExtractName(const std::string& path)
 {
     std::filesystem::path p(path);

@@ -32,8 +32,7 @@
 
 #define FFT_SIZE 1024
 
-std::string rootFolderPath = "C:/Users/binit/oops/AudioVisualizer/";
-
+std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
 
 
 int main(int argc, char* argv[])
@@ -62,7 +61,6 @@ int main(int argc, char* argv[])
         window.getGlContext(),
         audioManager,
         audioManager.GetAudios(),
-        audioManager.GetActiveAudios(),
         audio,
         renderPipeline
     );
@@ -113,8 +111,9 @@ int main(int argc, char* argv[])
 
             imguiLayer.renderViewport(id, renderPipeline.GetFinalImage(id));
 
-
         }
+
+        audioManager.Update(renderPipeline);
 
         imguiLayer.renderPanels();
         imguiLayer.endFrame();

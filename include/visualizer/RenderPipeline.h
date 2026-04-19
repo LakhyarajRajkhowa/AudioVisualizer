@@ -147,6 +147,8 @@ namespace Lengine {
 
         const std::unordered_map<int, RenderContext>& GetRenderContexts() const { return renderContexts; }
 
+        void Destroy(const int id);
+
     private:
         std::unordered_map<int, std::unique_ptr<Framebuffer>> msaaFramebuffers;
         std::unordered_map<int, std::unique_ptr<Framebuffer>> resolveFramebuffers;

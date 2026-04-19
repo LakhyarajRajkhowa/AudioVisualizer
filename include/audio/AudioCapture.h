@@ -28,7 +28,6 @@ public:
     AudioCapture();
     ~AudioCapture();
 
-    // ❌ prevent copying (important for audio resources)
     AudioCapture(const AudioCapture&) = delete;
     AudioCapture& operator=(const AudioCapture&) = delete;
 
@@ -50,7 +49,7 @@ public:
     const std::unordered_set<int>& GetLoadedAudios() const { return loadedAudios; }
 
 private:
-    ma_engine engine{};  // ✅ FIX
+    ma_engine engine{};  
 
     std::unordered_map<int, std::unique_ptr<AudioClip>> clips;
     std::unordered_set<int> loadedAudios;

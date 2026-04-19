@@ -9,6 +9,7 @@ void RenderPipeline::Init(const int id)
     initializedPipelines[id] = true;
 }
 
+
 void RenderPipeline::CreateFrameBuffer(const int id)
 {
     msaaFramebuffers[id].reset();
@@ -23,6 +24,17 @@ void RenderPipeline::CreateFrameBuffer(const int id)
     msaaFramebuffers[id]    = std::make_unique<Framebuffer>(msaaSpec);
     resolveFramebuffers[id] = std::make_unique<Framebuffer>(resolveSpec);
 }
+
+void RenderPipeline::Destroy(const int id) {
+    renderGraphs[id].Clear();
+    renderContexts.erase(id);
+
+    msaaFramebuffers[id].reset();
+    resolveFramebuffers[id].reset();
+
+    initializedPipelines[id] = false;
+}
+
 
 void RenderPipeline::BuildGraph(const int id)
 {

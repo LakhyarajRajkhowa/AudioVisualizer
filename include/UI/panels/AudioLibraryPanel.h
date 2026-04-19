@@ -22,15 +22,11 @@ class AudioLibraryPanel
 {
 public:
     AudioLibraryPanel(
-        const std::unordered_map<int, AudioMeta>& db,
-        std::unordered_set<int>& aa,
         AudioCapture& ac ,
         AudioManager& am,
         PlayPanel& pp
      
         ) :
-        audioDB(db),
-        activeAudios(aa),
         audioCapture(ac),
         audioManager(am),
         playPanel(pp)
@@ -43,11 +39,6 @@ public:
     void Draw();
 
 private:
-
-    const std::unordered_map<int, AudioMeta>& audioDB;
-    std::unordered_set<int>& activeAudios;
-
-    std::queue<int> audioToBeUnactivated;
 
     AudioCapture& audioCapture;
     AudioManager& audioManager;
