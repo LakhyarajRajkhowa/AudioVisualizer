@@ -11,11 +11,19 @@
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 
+#include "visualizer/Renderer.h"
+
 namespace Lengine
 {
 	class ViewportPanel {
 	public:
-		void OnImGuiRender(const int id, const std::string name, const uint32_t finalImage);
+		void OnImGuiRender(
+			const int id,
+			const std::string name,
+			const uint32_t finalImage,
+			RenderMode& renderMode
+
+			);
 	private:
 		ImVec2 viewportSize = { 1920, 1080 };
 

@@ -37,7 +37,11 @@ namespace Lengine {
 		void processEvent(const SDL_Event& e);
 		void beginFrame();
 		void renderPanels();
-		void renderViewport(const int id, const uint32_t finalImage);
+		void renderViewport(
+			const int id,
+			const uint32_t finalImage,
+			RenderMode& renderMode
+		);
 
 		void endFrame();
 

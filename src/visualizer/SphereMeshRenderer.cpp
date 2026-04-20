@@ -58,6 +58,10 @@ void SpheremeshRenderer::Render(RenderContext& context)
     // MVP matrices
     glm::mat4 model = glm::mat4(1.0f);
 
+
+    model = glm::rotate(model, context.time * 0.4f, glm::vec3(0, 1, 0)); // Y
+    model = glm::rotate(model, context.time * 0.2f, glm::vec3(1, 0, 0)); // X
+
     glm::mat4 view = glm::lookAt(
         glm::vec3(0, 0, 3),
         glm::vec3(0, 0, 0),
@@ -75,8 +79,8 @@ void SpheremeshRenderer::Render(RenderContext& context)
     shader->setMat4("uMVP", projection * view * model);
 
     // Wireframe mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(4.0f);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+   // glLineWidth(4.0f);
 
     glBindVertexArray(mesh->VAO);
 

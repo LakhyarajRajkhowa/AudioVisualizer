@@ -59,6 +59,7 @@ void AudioLibraryPanel::Draw()
         {
             if (!audioManager.activeAudios.count(audio.id)) {
                 audioCapture.LoadAudio(audio.id, audio.filepath);
+
                 audioManager.activeAudios.insert(audio.id);
             }
 

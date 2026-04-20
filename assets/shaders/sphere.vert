@@ -17,8 +17,8 @@ const float uBassWeight = 2.5;
 const float uMidWeight = 0.42;
 const float uTrebleWeight = 1.0;
 
-const float uWaveFrequency = 0.7;
-const float uDisplacementScale = 0.1;
+const float uWaveFrequency = 10.0;
+const float uDisplacementScale = 0.01;
 
 out float intensity;
 

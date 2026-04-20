@@ -20,6 +20,9 @@ struct AudioClip
     uint32_t sampleRate = 0;
     uint64_t frameCount = 0;
     uint32_t channels = 0;
+
+    ma_uint64 lastFrame = 0;
+    bool needsSeek = false;
 };
 
 class AudioCapture
@@ -49,7 +52,7 @@ public:
     const std::unordered_set<int>& GetLoadedAudios() const { return loadedAudios; }
 
 private:
-    ma_engine engine{};  
+    ma_engine engine{};
 
     std::unordered_map<int, std::unique_ptr<AudioClip>> clips;
     std::unordered_set<int> loadedAudios;

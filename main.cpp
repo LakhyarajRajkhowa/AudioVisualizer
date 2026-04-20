@@ -32,11 +32,17 @@
 
 #define FFT_SIZE 1024
 
-std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
+
+/*
+   !!!IMPORTANT  : Enter your root folder path here 
+*/
+
+std::string rootFolderPath = "../audio-visualizer-1.0/";
 
 
 int main(int argc, char* argv[])
 {
+
     bool running = true;
 
     Timer timer;
@@ -73,7 +79,6 @@ int main(int argc, char* argv[])
 
     while (running)
     {
-        // -------- Event Handling --------
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL2_ProcessEvent(&event);
@@ -96,20 +101,31 @@ int main(int argc, char* argv[])
 
             const auto& spectrum = fft.GetSpectrum(id);
 
-            analyzer.Analyze(id, spectrum);
+            analyzer.Analyze(id, spectrum, audio.GetSampleRate(id));
 
             float bass = analyzer.GetBass(id);
             float mid = analyzer.GetMid(id);
             float treble = analyzer.GetTreble(id);
 
-            const auto& smoothed = analyzer.GetSmoothedSpectrum(id);
+            const auto& smoothedSpectrum = analyzer.GetSmoothedSpectrum(id);
+            const auto& logSpectrum = analyzer.GetLogSpectrum(id);
+
 
             auto& renderContexts = renderPipeline.GetRenderContexts();
 
             
-            renderPipeline.Render(id, bass, mid, treble, smoothed, RenderMode::HOLOGRAM_WAVES, timer.GetTime());
+            renderPipeline.Render(
+                id,
+                bass,
+                mid,
+                treble,
+                spectrum,
+                smoothedSpectrum,
+                logSpectrum,
+                renderPipeline.renderModes[id],
+                timer.GetTime());
 
-            imguiLayer.renderViewport(id, renderPipeline.GetFinalImage(id));
+            imguiLayer.renderViewport(id, renderPipeline.GetFinalImage(id), renderPipeline.renderModes[id]);
 
         }
 

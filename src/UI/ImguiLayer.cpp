@@ -39,8 +39,13 @@ void ImGuiLayer::renderPanels() {
     audioLibraryPanel.Draw();
 }
 
-void ImGuiLayer::renderViewport(const int id, const uint32_t finalImage) {
-    viewport.OnImGuiRender(id, audioDatabase.at(id).name, finalImage);
+void ImGuiLayer::renderViewport(
+    const int id,
+    const uint32_t finalImage,
+    RenderMode& renderMode
+
+) {
+    viewport.OnImGuiRender(id, audioDatabase.at(id).name, finalImage, renderMode);
 }
 
 

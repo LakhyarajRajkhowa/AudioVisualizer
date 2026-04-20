@@ -5,13 +5,11 @@
 #include "resources/ResourceManager.h"
 #include "utils/Paths.h"
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Add HOLOGRAM_WAVES alongside your existing modes
-// ─────────────────────────────────────────────────────────────────────────────
+
 enum class RenderMode {
-    SPHERICAL_WAVES  = 1,
-    HOLOGRAM_WAVES   = 2,   // VLC / WMP-style holographic bar visualizer
-    RING_WAVES       = 3,   // ← NEW: concentric rotating arc rings (VLC-style)
+    SPHERICAL_WAVES  = 0,
+    HOLOGRAM_WAVES   = 1,   
+    RING_WAVES       = 2,  
 };
 
 
@@ -20,7 +18,10 @@ struct RenderContext {
     float mid;
     float treble;
 
+    std::vector<float> rawSamples;
+    std::vector<float> rawSpectrum;
     std::vector<float> smoothedSpectrum;
+    std::vector<float> logSpectrum;
 
     RenderMode mode = RenderMode::SPHERICAL_WAVES;
 

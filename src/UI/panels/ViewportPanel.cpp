@@ -2,7 +2,13 @@
 
 using namespace Lengine; 
 
-void ViewportPanel::OnImGuiRender(const int id, const std::string name, const uint32_t finalImage)
+void ViewportPanel::OnImGuiRender(
+    const int id,
+    const std::string name,
+    const uint32_t finalImage,
+    RenderMode& renderMode
+
+    )
 {
     std::string windowName = name + "##Viewport" + std::to_string(id);
 
@@ -10,6 +16,16 @@ void ViewportPanel::OnImGuiRender(const int id, const std::string name, const ui
 
     if (ImGui::Begin(windowName.c_str()))
     {
+        
+        const char* modes[] = { "Sphereical Wave", "Hologram", "Ring" };
+        int currentMode = (int)renderMode;
+
+
+        if (ImGui::Combo("##RenderMode", &currentMode, modes, IM_ARRAYSIZE(modes)))
+        {
+            renderMode = (RenderMode)currentMode;
+        }
+
         ImGui::Separator();
 
         ImVec2 avail = ImGui::GetContentRegionAvail();

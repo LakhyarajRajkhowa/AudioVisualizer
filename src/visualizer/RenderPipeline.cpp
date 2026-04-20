@@ -68,7 +68,9 @@ void RenderPipeline::BuildGraph(const int id)
 void RenderPipeline::Render(
     const int id,
     const float bass, const float mid, const float treble,
+    const std::vector<float>& rawSpectrum,
     const std::vector<float>& smoothedSpectrum,
+    const std::vector<float>& logSpectrum,
     RenderMode mode, const float time)
 {
     bool needRebuild = !initializedPipelines[id] || renderContexts[id].mode != mode;
@@ -76,7 +78,9 @@ void RenderPipeline::Render(
     renderContexts[id].bass             = bass;
     renderContexts[id].mid              = mid;
     renderContexts[id].treble           = treble;
+    renderContexts[id].rawSamples       = rawSpectrum;
     renderContexts[id].smoothedSpectrum = smoothedSpectrum;
+    renderContexts[id].logSpectrum      = logSpectrum;
     renderContexts[id].mode             = mode;
     renderContexts[id].time             = time;
 

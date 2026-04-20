@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
+#include "audio/AudioAnalyzer.h"
+
 #include "resources/ResourceManager.h"
 #include "visualizer/Renderer.h"
 
@@ -13,4 +15,10 @@ public:
 
     void Init() override;
     void Render(RenderContext& context) override;
+
+    void Render_wireframe(RenderContext& context);
+private:
+    float amplitude = 0.01f;
+    float frequency = 3.0f;
+
 };

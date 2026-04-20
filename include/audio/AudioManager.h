@@ -23,7 +23,9 @@ struct AudioMeta
 class AudioManager
 {
 public:
-    AudioManager(std::string dbPath) : dbPath(dbPath){}
+    AudioManager(std::string dbPath) : dbPath(dbPath){
+        LoadDatabase();
+    }
     void LoadDatabase();
     void SaveDatabase();
 

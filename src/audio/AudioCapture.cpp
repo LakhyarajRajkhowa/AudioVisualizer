@@ -58,6 +58,10 @@ bool AudioCapture::LoadAudio(int id, const std::string& filepath)
     ma_decoder_get_length_in_pcm_frames(&clip->decoder, &totalFrames);
     clip->frameCount = totalFrames;
 
+    // 🔥 important for sync fix
+    clip->lastFrame = 0;
+    clip->needsSeek = true;
+
     clips[id] = std::move(clip);
     loadedAudios.insert(id);
 
@@ -87,6 +91,10 @@ void AudioCapture::Stop(int id)
 
     ma_sound_stop(&it->second->sound);
     ma_sound_seek_to_pcm_frame(&it->second->sound, 0);
+
+    // reset decoder sync
+    it->second->lastFrame = 0;
+    it->second->needsSeek = true;
 }
 
 uint64_t AudioCapture::GetPlaybackFrame(int id)
@@ -122,6 +130,9 @@ void AudioCapture::SeekFrame(int id, uint64_t frame)
     if (it == clips.end()) return;
 
     ma_sound_seek_to_pcm_frame(&it->second->sound, frame);
+
+    it->second->lastFrame = frame;
+    it->second->needsSeek = true;
 }
 
 std::string AudioCapture::GetName(int id)
@@ -134,7 +145,7 @@ std::string AudioCapture::GetName(int id)
 
 std::vector<float> AudioCapture::GetSamplesWindow(int id, size_t fftSize)
 {
-    std::vector<float> window(fftSize);
+    std::vector<float> window(fftSize, 0.0f);
 
     auto it = clips.find(id);
     if (it == clips.end())
@@ -153,8 +164,13 @@ std::vector<float> AudioCapture::GetSamplesWindow(int id, size_t fftSize)
     if (currentFrame >= clip.frameCount)
         currentFrame = clip.frameCount - 1;
 
-    // Seek decoder to playback position
-    ma_decoder_seek_to_pcm_frame(&clip.decoder, currentFrame);
+    // 🔥 ONLY seek decoder when needed
+    if (clip.needsSeek)
+    {
+        ma_decoder_seek_to_pcm_frame(&clip.decoder, currentFrame);
+        clip.lastFrame = currentFrame;
+        clip.needsSeek = false;
+    }
 
     std::vector<float> tempBuffer(fftSize * clip.channels);
 
@@ -167,22 +183,17 @@ std::vector<float> AudioCapture::GetSamplesWindow(int id, size_t fftSize)
         &framesRead
     );
 
-    // Convert to mono
+    clip.lastFrame += framesRead;
+
+    // convert to mono
     for (size_t i = 0; i < framesRead; i++)
     {
         float left = tempBuffer[i * clip.channels];
-        float right = left;
-
-        if (clip.channels > 1)
-            right = tempBuffer[i * clip.channels + 1];
+        float right = (clip.channels > 1)
+            ? tempBuffer[i * clip.channels + 1]
+            : left;
 
         window[i] = (left + right) * 0.5f;
-    }
-
-    // Zero padding
-    for (size_t i = framesRead; i < fftSize; i++)
-    {
-        window[i] = 0.0f;
     }
 
     return window;

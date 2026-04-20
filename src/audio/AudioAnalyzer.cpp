@@ -3,6 +3,53 @@
 #include <algorithm>
 #include <iostream>
 
+
+void AudioAnalyzer::ComputeLogSpectrum(
+    AnalyzerState& state,
+    const std::vector<float>& fft,
+    const int sampleRate
+    )
+{
+    int fftSize = fft.size();
+    int numBars = state.logSpectrum.size();
+
+    float minFreq = 20.0f;
+    float maxFreq = sampleRate * 0.5f;
+
+    for (int i = 0; i < numBars; i++)
+    {
+        float t0 = (float)i / numBars;
+        float t1 = (float)(i + 1) / numBars;
+
+        float f0 = minFreq * pow(maxFreq / minFreq, t0);
+        float f1 = minFreq * pow(maxFreq / minFreq, t1);
+
+        int bin0 = (int)(f0 / maxFreq * fftSize);
+        int bin1 = (int)(f1 / maxFreq * fftSize);
+
+        bin0 = std::clamp(bin0, 0, fftSize - 1);
+        bin1 = std::clamp(bin1, 0, fftSize - 1);
+
+        float sum = 0.0f;
+        int count = 0;
+
+        for (int j = bin0; j <= bin1; j++)
+        {
+            float v = log(1.0f + fft[j] * 10.0f);
+            sum += v;
+            count++;
+        }
+
+        float value = (count > 0) ? sum / count : 0.0f;
+
+        float weight = 1.0f + 2.5f * (1.0f - t0);
+        value *= weight;
+
+        state.logSpectrum[i] =
+            state.logSpectrum[i] * smoothingFactor +
+            value * (1.0f - smoothingFactor);
+    }
+}
 AudioAnalyzer::AudioAnalyzer(size_t size)
 {
     fftSize = size;
@@ -16,19 +63,24 @@ void AudioAnalyzer::InitState(int id)
 
     state.smoothedSpectrum.resize(fftSize / 2, 0.0f);
 
+    state.logSpectrum.resize(NUM_BARS, 0.0f);
+
     states[id] = std::move(state);
 }
 
-
-void AudioAnalyzer::Analyze(int id, const std::vector<float>& spectrum)
+void AudioAnalyzer::Analyze(int id, const std::vector<float>& spectrum, const int sampleRate)
 {
     if (!states.count(id))
         InitState(id);
 
     AnalyzerState& state = states[id];
 
+
     SmoothSpectrum(state, spectrum);
     ComputeBands(state);
+
+    ComputeLogSpectrum(state, spectrum, sampleRate);
+
 }
 
 
@@ -74,6 +126,11 @@ void AudioAnalyzer::ComputeBands(AnalyzerState& state)
 const std::vector<float>& AudioAnalyzer::GetSmoothedSpectrum(int id)
 {
     return states[id].smoothedSpectrum;
+}
+
+const std::vector<float>& AudioAnalyzer::GetLogSpectrum(int id)
+{
+    return states[id].logSpectrum;
 }
 
 

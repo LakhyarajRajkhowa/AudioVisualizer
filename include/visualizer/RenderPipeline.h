@@ -39,7 +39,7 @@ namespace Lengine {
         {
             target.Bind();
             glViewport(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-            glClearColor(0, 0, 0, 1);
+            glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             ctx.frameWidth  = target.GetWidth();
             ctx.frameHeight = target.GetHeight();
@@ -138,7 +138,9 @@ namespace Lengine {
         void Render(
             const int id,
             const float bass, const float mid, const float treble,
+            const std::vector<float>& rawSpectrum,
             const std::vector<float>& smoothedSpectrum,
+            const std::vector<float>& logSpectrum,
             RenderMode mode, float time
         );
 
@@ -146,6 +148,8 @@ namespace Lengine {
         { return resolveFramebuffers[id]->GetColorAttachment(0); }
 
         const std::unordered_map<int, RenderContext>& GetRenderContexts() const { return renderContexts; }
+
+        std::unordered_map<int, RenderMode> renderModes;
 
         void Destroy(const int id);
 
@@ -155,6 +159,7 @@ namespace Lengine {
         std::unordered_map<int, RenderGraph>   renderGraphs;
         std::unordered_map<int, RenderContext> renderContexts;
         std::unordered_map<int, bool>          initializedPipelines;
+
 
         void CreateFrameBuffer(const int id);
         void BuildGraph(const int id);
