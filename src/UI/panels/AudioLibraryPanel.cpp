@@ -6,7 +6,6 @@ void AudioLibraryPanel::Draw()
     for (auto& id : audioManager.activeAudios) {
         playPanel.Draw(
             audioCapture,
-            audioManager.isPlaying,
             audioManager.audioToBeUnactivated,
             id,
             audioManager.audioDB.at(id).name

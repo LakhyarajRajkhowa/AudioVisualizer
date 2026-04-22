@@ -3,26 +3,33 @@
 #include <vector>
 #include <string>
 #include <cstdint>
-#include <cstddef>   // ✅ FIX
+#include <cstddef>
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
+#include <mutex>
 
 #include <miniaudio/miniaudio.h>
 
 struct AudioClip
 {
     ma_decoder decoder{};
-    ma_sound sound{};
-
     std::string filepath{};
 
     uint32_t sampleRate = 0;
     uint64_t frameCount = 0;
     uint32_t channels = 0;
 
-    ma_uint64 lastFrame = 0;
+    ma_uint64 currentFrame = 0;
+    bool isPlaying = false;
     bool needsSeek = false;
+    ma_uint64 seekFrame = 0;
+
+    //  Visualization buffer (circular)
+    std::vector<float> visualBuffer;
+    size_t writeCursor = 0;
+
+    std::mutex bufferMutex;
 };
 
 class AudioCapture
@@ -51,9 +58,16 @@ public:
 
     const std::unordered_set<int>& GetLoadedAudios() const { return loadedAudios; }
 
+    bool IsPlaying(int id);
+
 private:
-    ma_engine engine{};
+    static void DataCallback(ma_device* device, void* output, const void* input, ma_uint32 frameCount);
+
+    ma_device device{};
+    ma_device_config deviceConfig{};
 
     std::unordered_map<int, std::unique_ptr<AudioClip>> clips;
     std::unordered_set<int> loadedAudios;
+
+    int currentPlayingID = -1;
 };

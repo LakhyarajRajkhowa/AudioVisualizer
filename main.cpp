@@ -32,12 +32,14 @@
 
 #define FFT_SIZE 1024
 
+#define SAMPLE_RATE 44100
+
 
 /*
    !!!IMPORTANT  : Enter your root folder path here 
 */
 
-std::string rootFolderPath = "../audio-visualizer-1.0/";
+std::string rootFolderPath = "C:/Users/llakh/OneDrive/Desktop/Projects/AudioVisualizer/";
 
 
 int main(int argc, char* argv[])
@@ -51,10 +53,6 @@ int main(int argc, char* argv[])
     ResourceManager resouceManager;
 
     AudioCapture audio;
-
-    std::string path = rootFolderPath + "assets/audio/shape_of_you.mp3";
-    int id = audioManager.ImportAudio(path);
-
 
     Lengine::Window window("Audio Visualizer Test", 1280, 720, 0); 
 
@@ -101,7 +99,7 @@ int main(int argc, char* argv[])
 
             const auto& spectrum = fft.GetSpectrum(id);
 
-            analyzer.Analyze(id, spectrum, audio.GetSampleRate(id));
+            analyzer.Analyze(id, spectrum, SAMPLE_RATE);
 
             float bass = analyzer.GetBass(id);
             float mid = analyzer.GetMid(id);

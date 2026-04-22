@@ -72,86 +72,36 @@ void WaveBarRenderer::UploadInstanceData(
     const std::vector<float>& spectrum,
     float bass, float mid, float treble)
 {
+    if (spectrum.empty()) return;
+
     std::vector<float> data;
     data.reserve(NUM_BARS * 2);
 
-    if (spectrum.empty())
-        return;
+    // Copy log spectrum directly
+    std::vector<float> bands = spectrum;
 
-    const float minFreq = 20.0f;
-    const float maxFreq = 20000.0f;
-
-    const int sampleRate = 44100;
-    const int fftSize = static_cast<int>(spectrum.size()) * 2;
-
-    // ─────────────────────────────────────────────
-    // Build logarithmic frequency bands
-    // ─────────────────────────────────────────────
-    std::vector<float> bands(NUM_BARS, 0.0f);
-
-    for (int i = 0; i < NUM_BARS; ++i)
-    {
-        float t0 = static_cast<float>(i) / NUM_BARS;
-        float t1 = static_cast<float>(i + 1) / NUM_BARS;
-
-        float f0 = minFreq * pow(maxFreq / minFreq, t0);
-        float f1 = minFreq * pow(maxFreq / minFreq, t1);
-
-        int bin0 = static_cast<int>((f0 / sampleRate) * fftSize);
-        int bin1 = static_cast<int>((f1 / sampleRate) * fftSize);
-
-        bin0 = std::clamp(bin0, 0, static_cast<int>(spectrum.size()) - 1);
-        bin1 = std::clamp(bin1, 0, static_cast<int>(spectrum.size()) - 1);
-
-        if (bin1 < bin0) std::swap(bin0, bin1);
-
-        float sum = 0.0f;
-        int count = 0;
-
-        for (int b = bin0; b <= bin1; ++b)
-        {
-            sum += spectrum[b];
-            count++;
-        }
-
-        float amp = (count > 0) ? (sum / count) : 0.0f;
-
-        amp = pow(amp, 0.5f);   // boost quieter signals
-        amp *= 5.0f;            // global gain
-
-        float t = static_cast<float>(i) / (NUM_BARS - 1);
-        float trebleTilt = 1.0f + (t * 2.0f);
-        amp *= trebleTilt;
-
-        bands[i] = amp;
-    }
-
+    // Optional: normalize (keep this part)
     static float smoothedMax = 1.0f;
 
     float currentMax = 0.0001f;
     for (float v : bands)
         currentMax = std::max(currentMax, v);
 
-    // Smooth the max to avoid flickering
     smoothedMax = smoothedMax * 0.9f + currentMax * 0.1f;
 
-    // Normalize amplitude to [0,1]
     for (float& v : bands)
         v /= smoothedMax;
 
-    // ─────────────────────────────────────────────
-    // Upload instance data
-    // Layout: [barIndex, amplitude]
-    // ─────────────────────────────────────────────
+    // Upload
     for (int i = 0; i < NUM_BARS; ++i)
     {
-        data.push_back(static_cast<float>(i));
-        data.push_back(bands[i]);
+        data.push_back((float)i);
+        data.push_back(i < bands.size() ? bands[i] : 0.0f);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, _instanceVBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0,
-        static_cast<GLsizeiptr>(data.size() * sizeof(float)),
+        data.size() * sizeof(float),
         data.data());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -162,8 +112,7 @@ void WaveBarRenderer::Render(RenderContext& context)
     if (!shader || !_initialised) return;
 
 
-    // Upload dynamic instance data
-    UploadInstanceData(context.smoothedSpectrum,
+    UploadInstanceData(context.logSpectrum,
                        context.bass, context.mid, context.treble);
 
     shader->use();

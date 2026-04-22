@@ -17,7 +17,7 @@ void ViewportPanel::OnImGuiRender(
     if (ImGui::Begin(windowName.c_str()))
     {
         
-        const char* modes[] = { "Sphereical Wave", "Hologram", "Ring" };
+        const char* modes[] = { "Hologram", "Ring", "Spherical Waves" };
         int currentMode = (int)renderMode;
 
 

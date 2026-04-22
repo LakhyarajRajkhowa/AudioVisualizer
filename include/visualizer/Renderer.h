@@ -7,9 +7,10 @@
 
 
 enum class RenderMode {
-    SPHERICAL_WAVES  = 0,
-    HOLOGRAM_WAVES   = 1,   
-    RING_WAVES       = 2,  
+    HOLOGRAM_WAVES = 0,
+    RING_WAVES = 1,
+    SPHERICAL_WAVES  = 2
+     
 };
 
 

@@ -78,7 +78,6 @@ void SpheremeshRenderer::Render(RenderContext& context)
 
     shader->setMat4("uMVP", projection * view * model);
 
-    // Wireframe mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
    // glLineWidth(4.0f);
 

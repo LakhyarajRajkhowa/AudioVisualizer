@@ -1,66 +1,58 @@
 #define MINIAUDIO_IMPLEMENTATION
-
-#include <iostream>
 #include "audio/AudioCapture.h"
+#include <iostream>
+#include <cstring>
 
 AudioCapture::AudioCapture()
 {
-    if (ma_engine_init(NULL, &engine) != MA_SUCCESS)
+    deviceConfig = ma_device_config_init(ma_device_type_playback);
+
+    deviceConfig.playback.format = ma_format_f32;
+    deviceConfig.playback.channels = 2;
+    deviceConfig.sampleRate = 44100;
+
+    deviceConfig.dataCallback = DataCallback;
+    deviceConfig.pUserData = this;
+
+    if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS)
     {
-        std::cout << "Failed to initialize audio engine\n";
+        std::cout << "Failed to init device\n";
+    }
+
+    if (ma_device_start(&device) != MA_SUCCESS)
+    {
+        std::cout << "Failed to start device\n";
     }
 }
 
 AudioCapture::~AudioCapture()
 {
+    ma_device_uninit(&device);
+
     for (auto& [id, clip] : clips)
     {
-        ma_sound_uninit(&clip->sound);
         ma_decoder_uninit(&clip->decoder);
     }
-
-    ma_engine_uninit(&engine);
 }
 
 bool AudioCapture::LoadAudio(int id, const std::string& filepath)
 {
-    if (loadedAudios.find(id) != loadedAudios.end())
-        return true;
-
     auto clip = std::make_unique<AudioClip>();
-    clip->filepath = filepath;
 
-    ma_decoder_config config = ma_decoder_config_init_default();
-    config.format = ma_format_f32;
-
-    if (ma_decoder_init_file(filepath.c_str(), &config, &clip->decoder) != MA_SUCCESS)
+    if (ma_decoder_init_file(filepath.c_str(), NULL, &clip->decoder) != MA_SUCCESS)
     {
         std::cout << "Failed to load audio\n";
         return false;
     }
 
-    if (ma_sound_init_from_file(
-        &engine,
-        filepath.c_str(),
-        MA_SOUND_FLAG_STREAM,
-        NULL,
-        NULL,
-        &clip->sound) != MA_SUCCESS)
-    {
-        std::cout << "Failed to initialize sound\n";
-        return false;
-    }
-
+    clip->filepath = filepath;
     clip->sampleRate = clip->decoder.outputSampleRate;
     clip->channels = clip->decoder.outputChannels;
 
-    ma_uint64 totalFrames = 0;
-    ma_decoder_get_length_in_pcm_frames(&clip->decoder, &totalFrames);
-    clip->frameCount = totalFrames;
+    ma_decoder_get_length_in_pcm_frames(&clip->decoder, &clip->frameCount);
 
-    // 🔥 important for sync fix
-    clip->lastFrame = 0;
-    clip->needsSeek = true;
+    //  Allocate visualization buffer (~2 sec)
+    clip->visualBuffer.resize(clip->sampleRate * clip->channels * 2);
 
     clips[id] = std::move(clip);
     loadedAudios.insert(id);
@@ -70,131 +62,168 @@ bool AudioCapture::LoadAudio(int id, const std::string& filepath)
 
 void AudioCapture::Play(int id)
 {
-    auto it = clips.find(id);
-    if (it == clips.end()) return;
+    if (!clips.count(id)) return;
 
-    ma_sound_start(&it->second->sound);
+    for (auto& [otherID, clip] : clips)
+    {
+        clip->isPlaying = false;
+    }
+
+    currentPlayingID = id;
+
+    auto& clip = clips[id];
+
+    if (clip->currentFrame >= clip->frameCount)
+    {
+        ma_decoder_seek_to_pcm_frame(&clip->decoder, 0);
+        clip->currentFrame = 0;
+    }
+
+    clip->isPlaying = true;
 }
 
 void AudioCapture::Pause(int id)
 {
-    auto it = clips.find(id);
-    if (it == clips.end()) return;
-
-    ma_sound_stop(&it->second->sound);
+    if (clips.count(id))
+    {
+        clips[id]->isPlaying = false;
+    }
 }
 
 void AudioCapture::Stop(int id)
 {
-    auto it = clips.find(id);
-    if (it == clips.end()) return;
-
-    ma_sound_stop(&it->second->sound);
-    ma_sound_seek_to_pcm_frame(&it->second->sound, 0);
-
-    // reset decoder sync
-    it->second->lastFrame = 0;
-    it->second->needsSeek = true;
+    if (clips.count(id))
+    {
+        auto& clip = clips[id];
+        clip->isPlaying = false;
+        clip->currentFrame = 0;
+        ma_decoder_seek_to_pcm_frame(&clip->decoder, 0);
+    }
 }
 
-uint64_t AudioCapture::GetPlaybackFrame(int id)
+bool AudioCapture::IsPlaying(int id)
 {
-    auto it = clips.find(id);
-    if (it == clips.end()) return 0;
-
-    ma_uint64 cursor = 0;
-    ma_sound_get_cursor_in_pcm_frames(&it->second->sound, &cursor);
-
-    return cursor;
-}
-
-uint64_t AudioCapture::GetTotalFrames(int id)
-{
-    auto it = clips.find(id);
-    if (it == clips.end()) return 0;
-
-    return it->second->frameCount;
-}
-
-uint32_t AudioCapture::GetSampleRate(int id)
-{
-    auto it = clips.find(id);
-    if (it == clips.end()) return 0;
-
-    return it->second->sampleRate;
+    if (!clips.count(id)) return false;
+    return clips[id]->isPlaying;
 }
 
 void AudioCapture::SeekFrame(int id, uint64_t frame)
 {
-    auto it = clips.find(id);
-    if (it == clips.end()) return;
+    if (clips.count(id))
+    {
+        auto& clip = clips[id];
+        clip->needsSeek = true;
+        clip->seekFrame = frame;
+    }
+}
 
-    ma_sound_seek_to_pcm_frame(&it->second->sound, frame);
+uint64_t AudioCapture::GetPlaybackFrame(int id)
+{
+    if (clips.count(id))
+        return clips[id]->currentFrame;
+    return 0;
+}
 
-    it->second->lastFrame = frame;
-    it->second->needsSeek = true;
+uint64_t AudioCapture::GetTotalFrames(int id)
+{
+    if (clips.count(id))
+        return clips[id]->frameCount;
+    return 0;
+}
+
+uint32_t AudioCapture::GetSampleRate(int id)
+{
+    if (clips.count(id))
+        return clips[id]->sampleRate;
+    return 0;
 }
 
 std::string AudioCapture::GetName(int id)
 {
-    auto it = clips.find(id);
-    if (it == clips.end()) return "";
-
-    return it->second->filepath;
+    if (clips.count(id))
+        return clips[id]->filepath;
+    return "";
 }
 
 std::vector<float> AudioCapture::GetSamplesWindow(int id, size_t fftSize)
 {
-    std::vector<float> window(fftSize, 0.0f);
+    std::vector<float> result;
 
-    auto it = clips.find(id);
-    if (it == clips.end())
+    if (!clips.count(id)) return result;
+
+    auto& clip = clips[id];
+
+    std::lock_guard<std::mutex> lock(clip->bufferMutex);
+
+    size_t bufferSize = clip->visualBuffer.size();
+    size_t start = (clip->writeCursor + bufferSize - fftSize) % bufferSize;
+
+    result.resize(fftSize);
+
+    for (size_t i = 0; i < fftSize; i++)
     {
-        std::cout << "Audio ID not found\n";
-        return window;
+        result[i] = clip->visualBuffer[(start + i) % bufferSize];
     }
 
-    AudioClip& clip = *it->second;
+    return result;
+}
 
-    if (clip.channels == 0)
-        return window;
+void AudioCapture::DataCallback(ma_device* device, void* output, const void* input, ma_uint32 frameCount)
+{
+    auto* audio = (AudioCapture*)device->pUserData;
+    float* out = (float*)output;
 
-    ma_uint64 currentFrame = GetPlaybackFrame(id);
-
-    if (currentFrame >= clip.frameCount)
-        currentFrame = clip.frameCount - 1;
-
-    // 🔥 ONLY seek decoder when needed
-    if (clip.needsSeek)
+    if (audio->currentPlayingID == -1)
     {
-        ma_decoder_seek_to_pcm_frame(&clip.decoder, currentFrame);
-        clip.lastFrame = currentFrame;
-        clip.needsSeek = false;
+        memset(out, 0, frameCount * 2 * sizeof(float));
+        return;
     }
 
-    std::vector<float> tempBuffer(fftSize * clip.channels);
+    auto& clip = audio->clips[audio->currentPlayingID];
+
+    if (!clip->isPlaying)
+    {
+        memset(out, 0, frameCount * 2 * sizeof(float));
+        return;
+    }
+
+    if (clip->needsSeek)
+    {
+        ma_decoder_seek_to_pcm_frame(&clip->decoder, clip->seekFrame);
+        clip->currentFrame = clip->seekFrame;
+        clip->needsSeek = false;
+    }
+
+    ma_uint32 channels = clip->channels;
 
     ma_uint64 framesRead = 0;
 
     ma_decoder_read_pcm_frames(
-        &clip.decoder,
-        tempBuffer.data(),
-        fftSize,
+        &clip->decoder,
+        out,
+        frameCount,
         &framesRead
     );
 
-    clip.lastFrame += framesRead;
+    clip->currentFrame += framesRead;
 
-    // convert to mono
-    for (size_t i = 0; i < framesRead; i++)
+    if (framesRead < frameCount)
     {
-        float left = tempBuffer[i * clip.channels];
-        float right = (clip.channels > 1)
-            ? tempBuffer[i * clip.channels + 1]
-            : left;
+        memset(out + framesRead * channels, 0,
+            (frameCount - framesRead) * channels * sizeof(float));
 
-        window[i] = (left + right) * 0.5f;
+        clip->isPlaying = false;
     }
 
-    return window;
+    {
+        std::lock_guard<std::mutex> lock(clip->bufferMutex);
+
+        size_t bufferSize = clip->visualBuffer.size();
+
+        for (ma_uint32 i = 0; i < frameCount * 2; i++)
+        {
+            clip->visualBuffer[clip->writeCursor] = out[i];
+            clip->writeCursor = (clip->writeCursor + 1) % bufferSize;
+        }
+    }
 }

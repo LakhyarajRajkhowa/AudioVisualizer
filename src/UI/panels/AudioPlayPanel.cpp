@@ -1,7 +1,7 @@
 #include "UI/panels/AudioPlayPanel.h"
 #include <imgui.h>
 
-void PlayPanel::Draw(AudioCapture& audio, std::unordered_map<int, bool>&  isPlaying, std::queue<int>& audioToBeUnactivated, const int id, const std::string name)
+void PlayPanel::Draw(AudioCapture& audio, std::queue<int>& audioToBeUnactivated, const int id, const std::string name)
 {
     ImGui::Begin("Play");
     ImGui::PushID(id);
@@ -11,20 +11,20 @@ void PlayPanel::Draw(AudioCapture& audio, std::unordered_map<int, bool>&  isPlay
 
     // --- Controls ---
 
-    if (!isPlaying[id])
+    bool playing = audio.IsPlaying(id);
+
+    if (!playing)
     {
         if (ImGui::Button("Play"))
         {
             audio.Play(id);
-            isPlaying[id] = true;
         }
     }
     else
     {
-        if (ImGui::Button("Pause" ))
+        if (ImGui::Button("Pause"))
         {
             audio.Pause(id);
-            isPlaying[id] = false;
         }
     }
 
