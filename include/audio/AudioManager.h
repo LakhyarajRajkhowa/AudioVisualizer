@@ -1,0 +1,65 @@
+#pragma once
+
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+
+#include <nlohmann/json.hpp>
+
+#include "visualizer/RenderPipeline.h"
+
+struct AudioMeta
+{
+    int id;
+    std::string name;
+    std::string filepath;
+};
+
+class AudioManager
+{
+public:
+    AudioManager(std::string dbPath) : dbPath(dbPath){
+        LoadDatabase();
+    }
+    void LoadDatabase();
+    void SaveDatabase();
+
+    int ImportAudio(const std::string& path);
+
+    const std::unordered_map<int, AudioMeta>& GetAudios() const
+    {
+        return audioDB;
+    }
+
+    std::unordered_set<int>& GetActiveAudios()
+    {
+        return activeAudios;
+    }
+
+    const std::unordered_set<int>& GetActiveAudios() const
+    {
+        return activeAudios;
+    }
+
+    std::unordered_set<int> activeAudios;
+    std::queue<int> audioToBeUnactivated;
+    std::unordered_map<int, bool>  isPlaying;
+
+    std::unordered_map<int, AudioMeta> audioDB;
+
+    void Update(Lengine::RenderPipeline& rp);
+
+private:
+
+
+    int nextID = 1;
+
+    std::string ExtractName(const std::string& path);
+
+    const std::string dbPath;
+};
