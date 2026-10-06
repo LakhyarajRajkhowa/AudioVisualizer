@@ -5,6 +5,10 @@ The program loads an MP3 file, performs **FFT analysis**, and prepares the data 
 
 ---
 
+<p align="center">
+  <img src="demo_image.jpg" width="900">
+</p>
+
 # Build Instructions
 
 ```
