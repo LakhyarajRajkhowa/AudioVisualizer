@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <stdexcept>
 
 #include <SDL/SDL.h>
 #include <GL/glew.h>
@@ -10,15 +11,9 @@
 
 namespace Lengine {
 
-     inline void fatalError(std::string errorString)
+    inline void fatalError(const std::string& errorString)
     {
-        std::cout << errorString << std::endl;
-        std::cout << "Enter any key to quit...";
-        int tmp;
-        std::cin >> tmp;
-        
-        SDL_Quit();
-        exit(-1);
+        throw std::runtime_error(errorString);
     }
 
     class GLSLProgram
