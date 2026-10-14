@@ -25,10 +25,8 @@ struct AudioClip
     bool needsSeek = false;
     ma_uint64 seekFrame = 0;
 
-    //  Visualization buffer (circular)
     std::vector<float> visualBuffer;
     size_t writeCursor = 0;
-
     std::mutex bufferMutex;
 };
 
@@ -42,7 +40,6 @@ public:
     AudioCapture& operator=(const AudioCapture&) = delete;
 
     bool LoadAudio(int id, const std::string& filepath);
-
     void Play(int id);
     void Pause(int id);
     void Stop(int id);
@@ -51,13 +48,9 @@ public:
     uint64_t GetPlaybackFrame(int id);
     uint64_t GetTotalFrames(int id);
     uint32_t GetSampleRate(int id);
-
     void SeekFrame(int id, uint64_t frame);
-
     std::vector<float> GetSamplesWindow(int id, size_t fftSize);
-
     const std::unordered_set<int>& GetLoadedAudios() const { return loadedAudios; }
-
     bool IsPlaying(int id);
 
 private:
@@ -65,9 +58,12 @@ private:
 
     ma_device device{};
     ma_device_config deviceConfig{};
+    bool deviceInitialized = false;
 
+    // Protects clip-map access shared by the UI and miniaudio callback.
+    // Keep critical sections short to minimize callback latency.
+    mutable std::mutex clipsMutex;
     std::unordered_map<int, std::unique_ptr<AudioClip>> clips;
     std::unordered_set<int> loadedAudios;
-
     int currentPlayingID = -1;
 };
