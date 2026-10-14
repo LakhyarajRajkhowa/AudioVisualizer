@@ -1,5 +1,6 @@
 #include<algorithm>
 #include "visualizer/WaveBarRenderer.h"
+#include <exception>
 #include "visualizer/opengl/GLSLProgram.h"
 #include <imgui/imgui.h>
 
@@ -22,13 +23,19 @@ void WaveBarRenderer::Init()
     if (_initialised) return;
 
     if (!resourceManager.GetShader("wavebar")) {
-        auto shader = std::make_unique<Lengine::GLSLProgram>();
-        shader->compileShaders(
-            rootFolderPath + "/assets/shaders/wavebar.vert",
-            rootFolderPath + "/assets/shaders/wavebar.frag"
-        );
-        shader->linkShaders();
-        resourceManager.AddShader("wavebar", std::move(shader));
+        try {
+            auto shader = std::make_unique<Lengine::GLSLProgram>();
+            shader->compileShaders(
+                rootFolderPath + "/assets/shaders/wavebar.vert",
+                rootFolderPath + "/assets/shaders/wavebar.frag"
+            );
+            shader->linkShaders();
+            resourceManager.AddShader("wavebar", std::move(shader));
+        }
+        catch (const std::exception& e) {
+            std::cerr << "[Shader Error] Could not initialize wavebar renderer: "
+                      << e.what() << "\\n";
+        }
     }
 
     BuildQuadMesh();
