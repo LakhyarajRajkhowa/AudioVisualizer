@@ -1,4 +1,5 @@
 #include "visualizer/SphereMeshRenderer.h"
+#include <exception>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
@@ -12,13 +13,19 @@ SpheremeshRenderer::SpheremeshRenderer(ResourceManager& rm)
 void SpheremeshRenderer::Init()
 {
     if (!resourceManager.GetShader("sphere")) {
-        auto shader = std::make_unique<Lengine::GLSLProgram>();
-        shader->compileShaders(
-            rootFolderPath + "/assets/shaders/sphere.vert",
-            rootFolderPath + "/assets/shaders/sphere.frag"
-        );
-        shader->linkShaders();
-        resourceManager.AddShader("sphere", std::move(shader));
+        try {
+            auto shader = std::make_unique<Lengine::GLSLProgram>();
+            shader->compileShaders(
+                rootFolderPath + "/assets/shaders/sphere.vert",
+                rootFolderPath + "/assets/shaders/sphere.frag"
+            );
+            shader->linkShaders();
+            resourceManager.AddShader("sphere", std::move(shader));
+        }
+        catch (const std::exception& e) {
+            std::cerr << "[Shader Error] Could not initialize sphere renderer: "
+                      << e.what() << "\\n";
+        }
     }
 
     if (!resourceManager.GetMesh("sphere")) {
