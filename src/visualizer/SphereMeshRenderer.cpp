@@ -26,7 +26,11 @@ void SpheremeshRenderer::Init()
             "sphere",
             rootFolderPath + "assets/meshes/sphere.obj"
         );
-        resourceManager.AddMesh("sphere", std::move(mesh));
+
+        if (mesh->IsValid())
+            resourceManager.AddMesh("sphere", std::move(mesh));
+        else
+            std::cerr << "[Asset Error] Sphere mesh unavailable; spherical visualization will be skipped.\n";
     }
 }
 
@@ -40,7 +44,7 @@ void SpheremeshRenderer::Render(RenderContext& context)
         return;
     }
 
-    if (!mesh) {
+    if (!mesh || !mesh->IsValid()) {
         std::cout << "Sphere Mesh not found\n";
         return;
     }
