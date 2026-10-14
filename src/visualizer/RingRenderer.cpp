@@ -1,4 +1,5 @@
 #include "visualizer/RingRenderer.h"
+#include <exception>
 #include "visualizer/opengl/GLSLProgram.h"
 
 #include <cmath>
@@ -64,13 +65,19 @@ void RingRenderer::Init()
     if (_initialised) return;
 
     if (!resourceManager.GetShader("ring")) {
-        auto shader = std::make_unique<Lengine::GLSLProgram>();
-        shader->compileShaders(
-            rootFolderPath + "/assets/shaders/ring.vert",
-            rootFolderPath + "/assets/shaders/ring.frag"
-        );
-        shader->linkShaders();
-        resourceManager.AddShader("ring", std::move(shader));
+        try {
+            auto shader = std::make_unique<Lengine::GLSLProgram>();
+            shader->compileShaders(
+                rootFolderPath + "/assets/shaders/ring.vert",
+                rootFolderPath + "/assets/shaders/ring.frag"
+            );
+            shader->linkShaders();
+            resourceManager.AddShader("ring", std::move(shader));
+        }
+        catch (const std::exception& e) {
+            std::cerr << "[Shader Error] Could not initialize ring renderer: "
+                      << e.what() << "\\n";
+        }
     }
 
     BuildCircleGeometry();
