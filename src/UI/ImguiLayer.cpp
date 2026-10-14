@@ -1,3 +1,4 @@
+#include <fstream>
 #include "UI/ImguiLayer.h"
 
 
@@ -145,10 +146,24 @@ void ImGuiLayer::SetModernDarkTheme()
     style.PopupBorderSize = 1.0f;
 
     style.TabBorderSize = 0.0f;
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-    std::string fontPath = rootFolderPath + "assets/fonts/roboto-font/RobotoRegular-3m4L.ttf";
-    io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 15.0f);
+    // Load the custom font only when the file exists. Dear ImGui versions may
+    // assert inside AddFontFromFileTTF when the path cannot be opened, so check
+    // it before calling the API and retain ImGui's built-in font as a fallback.
+    ImGuiIO& io = ImGui::GetIO();
+    const std::string fontPath = rootFolderPath + "assets/fonts/roboto-font/RobotoRegular-3m4L.ttf";
+    std::ifstream fontFile(fontPath, std::ios::binary);
+    if (fontFile.good()) {
+        fontFile.close();
+        if (io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 15.0f) == nullptr) {
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                "[ImGui] Could not load custom font '%s'; using the default font.", fontPath.c_str());
+            io.Fonts->AddFontDefault();
+        }
+    } else {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+            "[ImGui] Custom font not found at '%s'; using the default font.", fontPath.c_str());
+        io.Fonts->AddFontDefault();
+    }
 
 }
 
