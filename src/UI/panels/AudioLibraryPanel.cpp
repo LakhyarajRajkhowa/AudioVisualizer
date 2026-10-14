@@ -52,10 +52,14 @@ void AudioLibraryPanel::Draw()
         ImGui::PushID(id);
         ImGui::BeginGroup();
 
-        if (ImGui::ImageButton(
-            "##audio_icon",
-            (ImTextureID)(intptr_t)iconTexture,
-            ImVec2(iconSize, iconSize)))
+        const bool audioClicked = iconTexture != 0
+            ? ImGui::ImageButton(
+                "##audio_icon",
+                (ImTextureID)(intptr_t)iconTexture,
+                ImVec2(iconSize, iconSize))
+            : ImGui::Button("Audio", ImVec2(iconSize, iconSize));
+
+        if (audioClicked)
         {
             if (!audioManager.activeAudios.count(audio.id))
             {
