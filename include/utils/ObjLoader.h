@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 
 #include <cmath>
+#include <cstdio>
 
 #define PI 3.14159265358979323846264338327950288
 
@@ -66,15 +67,18 @@ struct Vertex {
     glm::vec2 texCoord;
 };
 
-inline void loadOBJ(
+inline bool loadOBJ(
     const std::string& path,
     std::vector<Vertex>& vertices,
     std::vector<unsigned int>& indices
 ) {
+    vertices.clear();
+    indices.clear();
+
     std::ifstream file(path);
     if (!file.is_open()) {
-        std::cerr << "Failed to open " << path << "\n";
-        return;
+        std::cerr << "[Mesh Error] Could not open OBJ file: " << path << "\n";
+        return false;
     }
 
     std::vector<glm::vec3> temp_positions;
@@ -155,6 +159,13 @@ inline void loadOBJ(
 
     file.close();
 
-    std::cout << "Loaded OBJ: " << path << std::endl;
+    if (vertices.empty() || indices.empty()) {
+        std::cerr << "[Mesh Error] OBJ contains no usable triangle geometry: " << path << "\n";
+        vertices.clear();
+        indices.clear();
+        return false;
+    }
 
+    std::cout << "Loaded OBJ: " << path << std::endl;
+    return true;
 }
