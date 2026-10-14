@@ -1,15 +1,26 @@
 #include "UI/panels/AudioLibraryPanel.h"
 
+#include <iostream>
+
 void AudioLibraryPanel::Draw()
 {
-    
-    for (auto& id : audioManager.activeAudios) {
+    for (auto it = audioManager.activeAudios.begin(); it != audioManager.activeAudios.end(); )
+    {
+        const int id = *it;
+        auto meta = audioManager.audioDB.find(id);
+        if (meta == audioManager.audioDB.end())
+        {
+            it = audioManager.activeAudios.erase(it);
+            continue;
+        }
+
         playPanel.Draw(
             audioCapture,
             audioManager.audioToBeUnactivated,
             id,
-            audioManager.audioDB.at(id).name
+            meta->second.name
         );
+        ++it;
     }
 
     ImGui::Begin("Audio Library");
@@ -18,72 +29,74 @@ void AudioLibraryPanel::Draw()
     {
         if (ImGui::MenuItem("Import Audio"))
         {
-            std::string path = OpenAudioFileDialog();
-
+            const std::string path = OpenAudioFileDialog();
             if (!path.empty())
-            {
                 audioManager.ImportAudio(path);
-            }
         }
-
         ImGui::EndPopup();
     }
 
-    if (audioManager.audioDB.empty()) {
+    if (audioManager.audioDB.empty())
         ImGui::Text("No Audio Loaded");
-    }
 
-    float cellSize = iconSize + padding;
-
-    float panelWidth = ImGui::GetContentRegionAvail().x;
-
-    int columnCount = (int)(panelWidth / cellSize);
-
+    const float cellSize = iconSize + padding;
+    const float panelWidth = ImGui::GetContentRegionAvail().x;
+    int columnCount = static_cast<int>(panelWidth / cellSize);
     if (columnCount < 1)
         columnCount = 1;
 
-    ImGui::Columns(columnCount, 0, false);
+    ImGui::Columns(columnCount, nullptr, false);
 
-    for (auto& [id, audio] : audioManager.audioDB)
+    for (const auto& [id, audio] : audioManager.audioDB)
     {
         ImGui::PushID(id);
-
         ImGui::BeginGroup();
 
-        // clickable icon
         if (ImGui::ImageButton(
             "##audio_icon",
             (ImTextureID)(intptr_t)iconTexture,
             ImVec2(iconSize, iconSize)))
         {
-            if (!audioManager.activeAudios.count(audio.id)) {
-                audioCapture.LoadAudio(audio.id, audio.filepath);
-
-                audioManager.activeAudios.insert(audio.id);
+            if (!audioManager.activeAudios.count(audio.id))
+            {
+                // Only activate an entry after the decoder confirms that it
+                // can open and decode the file.
+                if (!audioCapture.LoadAudio(audio.id, audio.filepath))
+                {
+                    ImGui::OpenPopup("AudioLoadError");
+                }
+                else
+                {
+                    audioManager.activeAudios.insert(audio.id);
+                    audioCapture.Play(audio.id);
+                    audioManager.isPlaying[audio.id] = audioCapture.IsPlaying(audio.id);
+                }
             }
-
-            audioCapture.Play(audio.id);
-            audioManager.isPlaying[audio.id] = true;
-
+            else
+            {
+                audioCapture.Play(audio.id);
+                audioManager.isPlaying[audio.id] = audioCapture.IsPlaying(audio.id);
+            }
         }
 
-        // center text under icon
-        float textWidth = ImGui::CalcTextSize(audio.name.c_str()).x;
-        float avail = iconSize;
+        if (ImGui::BeginPopup("AudioLoadError"))
+        {
+            ImGui::TextWrapped("Could not load this audio file. Check that the file still exists and uses a supported audio format.");
+            ImGui::TextWrapped("%s", audio.filepath.c_str());
+            if (ImGui::Button("OK"))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
 
-        ImGui::SetCursorPosX(
-            ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
-
+        const float textWidth = ImGui::CalcTextSize(audio.name.c_str()).x;
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (iconSize - textWidth) * 0.5f);
         ImGui::TextWrapped("%s", audio.name.c_str());
 
         ImGui::EndGroup();
-
         ImGui::NextColumn();
-
         ImGui::PopID();
     }
 
     ImGui::Columns(1);
-
     ImGui::End();
 }
